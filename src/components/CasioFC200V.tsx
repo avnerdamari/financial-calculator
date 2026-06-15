@@ -191,7 +191,7 @@ function CalcBtn({
       className={`casio-key-wrap${wide ? " col-span-2" : ""}`}
       data-btn-id={btnId}
       style={{
-        clipPath: cp ?? undefined, minWidth: 0, display: "flex", flexDirection: "column",
+        clipPath: cp ?? undefined, minWidth: 0, display: "flex", flexDirection: "column", height: style.h,
         boxShadow: active
           ? "0 0 0 3px #FFD700, 0 0 16px #FFD700, 0 0 30px rgba(255,215,0,0.4)"
           : style.noShadow ? "none" : "0 3px 5px rgba(0,0,0,0.45)",
@@ -1206,7 +1206,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     const release = (set: (v: boolean) => void) => () => set(false);
     return (
       <div style={{
-        position: "relative", width: 96, height: 96, margin: "12px auto 0",
+        position: "relative", width: 96, height: 96, margin: "12px auto 0", marginTop: 20,
         transform: pU ? "perspective(300px) rotateX(-18deg) scale(0.96)"
                  : pD ? "perspective(300px) rotateX(18deg) scale(0.96)"
                  : pL ? "perspective(300px) rotateY(18deg) scale(0.96)"
@@ -1324,7 +1324,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
 
       <div style={{ position: "relative", width: 353, borderRadius: "14px 14px 18px 18px", overflow: "hidden" }}>
       <div style={{
-        position: "relative", overflow: "hidden",
+        position: "relative",
         background: "#d4d4d4", border: "none",
         borderRadius: "14px 14px 0 0", padding: "10px 16px 18px",
       }}>
@@ -1357,16 +1357,28 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2.5fr 1fr 1fr", gap: 4, marginBottom: 60, gridAutoRows: "24px", overflow: "visible" }}>
-          <CalcBtn label="SHIFT" style={{ bg: "#c8c8c8", text: "#111", gradient: "#c8c8c8", textSize: "9px", clipPath: undefined, borderRadius: "50%", border: "transparent", noShadow: true, noSpacer: true }} active={shiftActive} onClick={() => setShiftActive(s => !s)} />
-          <CalcBtn label="ALPHA" style={{ bg: "#c8c8c8", text: "#111", gradient: "#c8c8c8", textSize: "9px", clipPath: undefined, borderRadius: "50%", border: "transparent", noShadow: true, noSpacer: true }} onClick={() => {}} />
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", transform: "translateY(20px)", zIndex: 10, position: "relative" }}>
+        <div style={{ display: "flex", gap: 4, marginBottom: -20, alignItems: "flex-start" }}>
+          <div style={{ flex: 1, paddingTop: 8, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+            <span style={{ fontSize: "13px", fontWeight: "bold", color: "#8B4513" }}>SHIFT</span>
+            <div style={{ width: 50 }}><CalcBtn label="" style={{ bg: "#e8e8e8", text: "#111", gradient: "linear-gradient(180deg,#f2f2f2 0%,#d0d0d0 100%)", clipPath: undefined, borderRadius: "50%", border: "#999", noShadow: true, noSpacer: true, h: "28px" }} active={shiftActive} onClick={() => setShiftActive(s => !s)} /></div>
+          </div>
+          <div style={{ flex: 1, paddingTop: 20, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+            <span style={{ fontSize: "13px", fontWeight: "bold", color: "#cc0000" }}>ALPHA</span>
+            <div style={{ width: 50 }}><CalcBtn label="" style={{ bg: "#e8e8e8", text: "#111", gradient: "linear-gradient(180deg,#f2f2f2 0%,#d0d0d0 100%)", clipPath: undefined, borderRadius: "50%", border: "#999", noShadow: true, noSpacer: true, h: "28px" }} onClick={() => {}} /></div>
+          </div>
+          <div style={{ flex: 2.5, display: "flex", justifyContent: "center" }}>
             <ReplayPad />
           </div>
-          <CalcBtn label="SET UP" style={{ bg: "#c8c8c8", text: "#111", gradient: "#c8c8c8", textSize: "7px", clipPath: undefined, borderRadius: "50%", border: "transparent", noShadow: true, noSpacer: true }} onClick={() => {}} />
-          <CalcBtn label="ON" style={{ bg: "#c8c8c8", text: "#111", gradient: "#c8c8c8", textSize: "9px", clipPath: undefined, borderRadius: "50%", border: "transparent", noShadow: true, noSpacer: true }} onClick={() => {
-            if (!poweredOn) { setPoweredOn(true); setShiftActive(false); }
-          }} />
+          <div style={{ flex: 1, paddingTop: 20, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+            <span style={{ fontSize: "13px", fontWeight: "bold", color: "#333" }}>SET UP</span>
+            <div style={{ width: 50 }}><CalcBtn label="" style={{ bg: "#e8e8e8", text: "#111", gradient: "linear-gradient(180deg,#f2f2f2 0%,#d0d0d0 100%)", clipPath: undefined, borderRadius: "50%", border: "#999", noShadow: true, noSpacer: true, h: "28px" }} onClick={() => {}} /></div>
+          </div>
+          <div style={{ flex: 1, paddingTop: 8, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+            <span style={{ fontSize: "13px", fontWeight: "bold", color: "#333" }}>ON</span>
+            <div style={{ width: 50 }}><CalcBtn label="" style={{ bg: "#e8e8e8", text: "#111", gradient: "linear-gradient(180deg,#f2f2f2 0%,#d0d0d0 100%)", clipPath: undefined, borderRadius: "50%", border: "#999", noShadow: true, noSpacer: true, h: "28px" }} onClick={() => {
+              if (!poweredOn) { setPoweredOn(true); setShiftActive(false); }
+            }} /></div>
+          </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2.5fr 1fr 1fr", gap: 4, marginBottom: 6, gridAutoRows: "36px" }}>
