@@ -917,6 +917,23 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     }} />
   );
 
+  const STATUS_ITEMS: { key: string; active: boolean }[] = [
+    { key: "S",    active: shiftActive },
+    { key: "A",    active: false },
+    { key: "M",    active: false },
+    { key: "STO",  active: false },
+    { key: "RCL",  active: false },
+    { key: "STAT", active: false },
+    { key: "360",  active: false },
+    { key: "SI",   active: false },
+    { key: "DMY",  active: false },
+    { key: "D",    active: false },
+    { key: "R",    active: false },
+    { key: "G",    active: false },
+    { key: "FIX",  active: false },
+    { key: "SCI",  active: false },
+  ];
+
   const lcd = (
     <div style={{
       background: "#b0b0b0", border: "2px solid #999", borderRadius: 4,
@@ -924,14 +941,15 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       boxShadow: "inset 0 2px 6px rgba(0,0,0,0.3)",
       height: 120, overflow: "hidden",
     }}>
-      <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <span>
-          {screenMode === "setMenu" ? "payment"
-            : screenMode === "cash" ? "Cash Flow"
-            : screenMode === "cashEditor" ? "D.Editor"
-            : screenMode === "amrt" ? "Amortization"
-            : "Compound Int."}
-        </span>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 2, paddingBottom: 2, borderBottom: "1px solid #999" }}>
+        <div style={{ display: "flex", gap: 5 }}>
+          {STATUS_ITEMS.map(({ key, active }) => (
+            <span key={key} style={{
+              fontSize: "14px", fontWeight: "bold", fontFamily: "monospace",
+              color: active ? "#111" : "#ccc",
+            }}>{key}</span>
+          ))}
+        </div>
         {(() => {
           let vStart = 0, total = 0;
           const VIEW = 3;
@@ -952,12 +970,21 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           const hasBelow = vStart + VIEW < total;
           if (!hasAbove && !hasBelow) return null;
           return (
-            <span style={{ display: "flex", flexDirection: "column", fontSize: 16, lineHeight: 1, color: "#444", fontWeight: "bold", gap: 0 }}>
+            <span style={{ display: "flex", flexDirection: "row", fontSize: 12, lineHeight: 1, color: "#444", fontWeight: "bold", gap: 1 }}>
               {hasAbove && <span>▲</span>}
               {hasBelow && <span>▼</span>}
             </span>
           );
         })()}
+      </div>
+      <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1" }}>
+        <span>
+          {screenMode === "setMenu" ? "payment"
+            : screenMode === "cash" ? "Cash Flow"
+            : screenMode === "cashEditor" ? "D.Editor"
+            : screenMode === "amrt" ? "Amortization"
+            : "Compound Int."}
+        </span>
       </div>
 
       {screenMode === "amrt" ? (() => {
