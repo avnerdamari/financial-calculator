@@ -1381,7 +1381,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2.5fr 1fr 1fr", gap: 4, marginBottom: 6, gridAutoRows: "36px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2.5fr 1fr 1fr", gap: 4, marginBottom: 18, gridAutoRows: "36px" }}>
           <CalcBtn label="SC1" style={{ bg: "#111", text: "#7ecfff", border: "transparent", textSize: "13px", noShadow: true }} onClick={() => {}} />
           <CalcBtn label="SC2" style={{ bg: "#111", text: "#7ecfff", border: "transparent", textSize: "13px", noShadow: true }} onClick={() => {}} />
           <div />
@@ -1398,54 +1398,137 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           <CalcBtn label="CASH" style={S.green} active={activeButtonId === "cash"} pressed={pressedButtonId === "cash"} btnId="cash" onClick={() => { setScreenMode("cash"); setCashMainCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); }} />
           <CalcBtn label="AMRT" style={S.green} active={activeButtonId === "amrt"} pressed={pressedButtonId === "amrt"} btnId="amrt" onClick={() => { setScreenMode("amrt"); setAmCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); }} />
           <CalcBtn label="COMP" style={S.green} onClick={() => msg("—")} />
-          <CalcBtn label="STAT" style={S.green} onClick={() => msg("—")} />
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "10px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>S-MENU</span>
+            <CalcBtn label="STAT" style={S.green} onClick={() => msg("—")} />
+          </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12, gridAutoRows: "36px" }}>
-          <CalcBtn label="CNVR" style={S.green} onClick={() => msg("—")} />
-          <CalcBtn label="COST" style={S.green} onClick={() => msg("—")} />
-          <CalcBtn label="DAYS" style={S.green} onClick={() => msg("—")} />
-          <CalcBtn label="DEPR" style={S.green} onClick={() => msg("—")} />
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "11px", fontWeight: "bold", color: "#cc0000", lineHeight: 1, pointerEvents: "none" }}>A</span>
+            <CalcBtn label="CNVR" style={S.green} onClick={() => msg("—")} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "11px", fontWeight: "bold", color: "#cc0000", lineHeight: 1, pointerEvents: "none" }}>B</span>
+            <CalcBtn label="COST" style={S.green} onClick={() => msg("—")} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "11px", fontWeight: "bold", color: "#cc0000", lineHeight: 1, pointerEvents: "none" }}>C</span>
+            <CalcBtn label="DAYS" style={S.green} onClick={() => msg("—")} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "11px", fontWeight: "bold", color: "#cc0000", lineHeight: 1, pointerEvents: "none" }}>D</span>
+            <CalcBtn label="DEPR" style={S.green} onClick={() => msg("—")} />
+          </div>
           <CalcBtn label="BOND" style={S.green} onClick={() => msg("—")} />
           <CalcBtn label="BEVN" style={S.green} onClick={() => msg("—")} />
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12, gridAutoRows: "36px" }}>
           <CalcBtn label="(−)" style={{ ...S.grayWhite, textSize: "13px" }} active={activeButtonId === "sign"} pressed={pressedButtonId === "sign"} btnId="sign" onClick={() => { playClickSound("sign"); spawnFlyChar("sign"); pressSign(); }} />
-          <CalcBtn label="RCL" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
-          <CalcBtn label="(" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
-          <CalcBtn label=")" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
-          <CalcBtn label="CTLG" style={{ ...S.grayWhite, textSize: "11px" }} onClick={() => {}} />
-          <CalcBtn label="M+" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>STO</span>
+            <CalcBtn label="RCL" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>%</span>
+            <CalcBtn label="(" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 2, right: 2, fontSize: "13px", fontWeight: "bold", lineHeight: 1, pointerEvents: "none", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#8B4513", fontSize: "26px", lineHeight: 0.6 }}>′</span><span style={{ color: "#cc0000" }}>X</span>
+            </span>
+            <CalcBtn label=")" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 2, right: 2, fontSize: "13px", fontWeight: "bold", lineHeight: 1, pointerEvents: "none", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#8B4513" }}>VARS</span><span style={{ color: "#cc0000" }}>Y</span>
+            </span>
+            <CalcBtn label="CTLG" style={{ ...S.grayWhite, textSize: "11px" }} onClick={() => {}} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 2, right: 2, fontSize: "13px", fontWeight: "bold", lineHeight: 1, pointerEvents: "none", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#8B4513" }}>M<span style={{ position: "relative", top: -4 }}>−</span></span><span style={{ color: "#cc0000" }}>M</span>
+            </span>
+            <CalcBtn label="M+" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
+          </div>
         </div>
 
         <div style={{ padding: "0 10px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "48px" }}>
-          <CalcBtn label="7" style={S.num} active={activeButtonId === "7"} pressed={pressedButtonId === "7"} btnId="7" onClick={() => { playClickSound("7"); spawnFlyChar("7"); pressNum("7"); }} />
-          <CalcBtn label="8" style={S.num} active={activeButtonId === "8"} pressed={pressedButtonId === "8"} btnId="8" onClick={() => { playClickSound("8"); spawnFlyChar("8"); pressNum("8"); }} />
-          <CalcBtn label="9" style={S.num} active={activeButtonId === "9"} pressed={pressedButtonId === "9"} btnId="9" onClick={() => { playClickSound("9"); spawnFlyChar("9"); pressNum("9"); }} />
-          <CalcBtn label="DEL" style={S.pink2} onClick={pressDEL} />
-          <CalcBtn label="AC" style={S.pink2} onClick={pressAC} />
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>eˣ</span>
+            <CalcBtn label="7" style={S.num} active={activeButtonId === "7"} pressed={pressedButtonId === "7"} btnId="7" onClick={() => { playClickSound("7"); spawnFlyChar("7"); pressNum("7"); }} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>ln</span>
+            <CalcBtn label="8" style={S.num} active={activeButtonId === "8"} pressed={pressedButtonId === "8"} btnId="8" onClick={() => { playClickSound("8"); spawnFlyChar("8"); pressNum("8"); }} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>CLR</span>
+            <CalcBtn label="9" style={S.num} active={activeButtonId === "9"} pressed={pressedButtonId === "9"} btnId="9" onClick={() => { playClickSound("9"); spawnFlyChar("9"); pressNum("9"); }} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>INS</span>
+            <CalcBtn label="DEL" style={S.pink2} onClick={pressDEL} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>OFF</span>
+            <CalcBtn label="AC" style={S.pink2} onClick={pressAC} />
+          </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "48px" }}>
-          <CalcBtn label="4" style={S.num} active={activeButtonId === "4"} pressed={pressedButtonId === "4"} btnId="4" onClick={() => { playClickSound("4"); spawnFlyChar("4"); pressNum("4"); }} />
-          <CalcBtn label="5" style={S.num} active={activeButtonId === "5"} pressed={pressedButtonId === "5"} btnId="5" onClick={() => { playClickSound("5"); spawnFlyChar("5"); pressNum("5"); }} />
-          <CalcBtn label="6" style={S.num} active={activeButtonId === "6"} pressed={pressedButtonId === "6"} btnId="6" onClick={() => { playClickSound("6"); spawnFlyChar("6"); pressNum("6"); }} />
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>x²</span>
+            <CalcBtn label="4" style={S.num} active={activeButtonId === "4"} pressed={pressedButtonId === "4"} btnId="4" onClick={() => { playClickSound("4"); spawnFlyChar("4"); pressNum("4"); }} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>√‾</span>
+            <CalcBtn label="5" style={S.num} active={activeButtonId === "5"} pressed={pressedButtonId === "5"} btnId="5" onClick={() => { playClickSound("5"); spawnFlyChar("5"); pressNum("5"); }} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>^</span>
+            <CalcBtn label="6" style={S.num} active={activeButtonId === "6"} pressed={pressedButtonId === "6"} btnId="6" onClick={() => { playClickSound("6"); spawnFlyChar("6"); pressNum("6"); }} />
+          </div>
           <CalcBtn label="×" style={S.op} onClick={() => pressOp("×")} />
           <CalcBtn label="÷" style={S.op} onClick={() => pressOp("÷")} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "48px" }}>
-          <CalcBtn label="1" style={S.num} active={activeButtonId === "1"} pressed={pressedButtonId === "1"} btnId="1" onClick={() => { playClickSound("1"); spawnFlyChar("1"); pressNum("1"); }} />
-          <CalcBtn label="2" style={S.num} active={activeButtonId === "2"} pressed={pressedButtonId === "2"} btnId="2" onClick={() => { playClickSound("2"); spawnFlyChar("2"); pressNum("2"); }} />
-          <CalcBtn label="3" style={S.num} active={activeButtonId === "3"} pressed={pressedButtonId === "3"} btnId="3" onClick={() => { playClickSound("3"); spawnFlyChar("3"); pressNum("3"); }} />
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>sin</span>
+            <CalcBtn label="1" style={S.num} active={activeButtonId === "1"} pressed={pressedButtonId === "1"} btnId="1" onClick={() => { playClickSound("1"); spawnFlyChar("1"); pressNum("1"); }} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>cos</span>
+            <CalcBtn label="2" style={S.num} active={activeButtonId === "2"} pressed={pressedButtonId === "2"} btnId="2" onClick={() => { playClickSound("2"); spawnFlyChar("2"); pressNum("2"); }} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>tan</span>
+            <CalcBtn label="3" style={S.num} active={activeButtonId === "3"} pressed={pressedButtonId === "3"} btnId="3" onClick={() => { playClickSound("3"); spawnFlyChar("3"); pressNum("3"); }} />
+          </div>
           <CalcBtn label="+" style={S.op} onClick={() => pressOp("+")} />
           <CalcBtn label="−" style={S.op} onClick={() => pressOp("−")} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, gridAutoRows: "48px" }}>
-          <CalcBtn label="0" style={S.num} active={activeButtonId === "0"} pressed={pressedButtonId === "0"} btnId="0" onClick={() => { playClickSound("0"); spawnFlyChar("0"); pressNum("0"); }} />
-          <CalcBtn label="." style={S.num} active={activeButtonId === "dot"} pressed={pressedButtonId === "dot"} btnId="dot" onClick={() => { playClickSound("dot"); spawnFlyChar("dot"); pressNum("."); }} />
-          <CalcBtn label="×10ˣ" style={{ ...S.op, textSize: "17px" }} onClick={() => {}} />
-          <CalcBtn label="Ans" style={S.op} onClick={() => {}} />
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>Rnd</span>
+            <CalcBtn label="0" style={S.num} active={activeButtonId === "0"} pressed={pressedButtonId === "0"} btnId="0" onClick={() => { playClickSound("0"); spawnFlyChar("0"); pressNum("0"); }} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>Δ%</span>
+            <CalcBtn label="." style={S.num} active={activeButtonId === "dot"} pressed={pressedButtonId === "dot"} btnId="dot" onClick={() => { playClickSound("dot"); spawnFlyChar("dot"); pressNum("."); }} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 2, right: 2, fontSize: "13px", fontWeight: "bold", lineHeight: 1, pointerEvents: "none", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#8B4513" }}>π</span><span style={{ color: "#cc0000" }}>e</span>
+            </span>
+            <CalcBtn label="×10ˣ" style={{ ...S.op, textSize: "17px" }} onClick={() => {}} />
+          </div>
+          <div style={{ position: "relative", display: "grid" }}>
+            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>DRG►</span>
+            <CalcBtn label="Ans" style={S.op} onClick={() => {}} />
+          </div>
           <CalcBtn label="EXE" style={S.exe} active={activeButtonId === "exe"} pressed={pressedButtonId === "exe"} btnId="exe" onClick={pressEXE} />
         </div>
         </div>
