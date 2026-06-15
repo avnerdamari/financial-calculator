@@ -176,7 +176,7 @@ function FlyingChar({
 /* ─── Button ─── */
 type BtnStyle = {
   bg: string; text: string; border?: string; textSize?: string; h?: string;
-  gradient?: string; clipPath?: string;
+  gradient?: string; clipPath?: string; borderRadius?: string; noShadow?: boolean; noSpacer?: boolean;
 };
 
 function CalcBtn({
@@ -194,14 +194,14 @@ function CalcBtn({
         clipPath: cp ?? undefined, minWidth: 0, display: "flex", flexDirection: "column",
         boxShadow: active
           ? "0 0 0 3px #FFD700, 0 0 16px #FFD700, 0 0 30px rgba(255,215,0,0.4)"
-          : "0 3px 5px rgba(0,0,0,0.45)",
+          : style.noShadow ? "none" : "0 3px 5px rgba(0,0,0,0.45)",
         transition: "box-shadow 150ms, transform 80ms",
         transform: pressed ? "translateY(3px) scale(0.93)" : "none",
         zIndex: active ? 10 : undefined,
         position: active ? "relative" : undefined,
       }}
     >
-      <div style={{ minHeight: 9, lineHeight: 1 }} />
+      {!style.noSpacer && <div style={{ minHeight: 9, lineHeight: 1 }} />}
       <button
         onPointerDown={e => { e.preventDefault(); onClick(); }}
         className="casio-key flex flex-col items-center justify-center select-none w-full"
@@ -210,7 +210,7 @@ function CalcBtn({
           background: style.gradient ?? style.bg,
           color: style.text,
           border: `1px solid ${style.border ?? "rgba(0,0,0,0.35)"}`,
-          borderRadius: "7px 7px 5px 5px",
+          borderRadius: style.borderRadius ?? "7px 7px 5px 5px",
           fontSize: style.textSize ?? "9px",
           fontWeight: "bold",
           cursor: "pointer",
@@ -884,26 +884,26 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
                   gradient: "linear-gradient(180deg,#e8e8e8 0%,#b8b8b8 100%)", clipPath: TRAP },
     silverDark: { bg: "#b8b8b8", text: "#111", border: "#999",
                   gradient: "linear-gradient(180deg,#d0d0d0 0%,#a0a0a0 100%)", clipPath: TRAP },
-    green:      { bg: "#3a3a3a", text: "#4cd464", border: "#222",
-                  gradient: "linear-gradient(180deg,#4a4a4a 0%,#2c2c2c 100%)", clipPath: TRAP },
-    grayWhite:  { bg: "#3a3a3a", text: "#fff", border: "#222",
-                  gradient: "linear-gradient(180deg,#4a4a4a 0%,#2c2c2c 100%)", clipPath: TRAP },
+    green:      { bg: "#111111", text: "#4cd464", border: "#333", textSize: "13px",
+                  gradient: "#111111", clipPath: TRAP },
+    grayWhite:  { bg: "#111111", text: "#fff", border: "#333",
+                  gradient: "#111111", clipPath: TRAP },
     blue:       { bg: "#1a3a8a", text: "#fff", border: "#102070",
                   gradient: "linear-gradient(180deg,#2a4aaa 0%,#0e2868 100%)", clipPath: TRAP },
     pink:       { bg: "#7a2090", text: "#fff", border: "#5a1070",
                   gradient: "linear-gradient(180deg,#9030b0 0%,#581068 100%)", clipPath: TRAP },
-    dark:       { bg: "#5a5a5a", text: "#fff", border: "#3a3a3a",
-                  gradient: "linear-gradient(180deg,#707070 0%,#404040 100%)", clipPath: TRAP },
-    darker:     { bg: "#3a3a3a", text: "#ffffff", border: "#222",
-                  gradient: "linear-gradient(180deg,#4e4e4e 0%,#242424 100%)", clipPath: TRAP },
-    exe:        { bg: "#4a4a6a", text: "#e8e8ff", border: "#2a2a4a", textSize: "18px", h: "2.3rem",
+    dark:       { bg: "#707070", text: "#fff", border: "#555",
+                  gradient: "linear-gradient(180deg,#808080 0%,#606060 100%)", clipPath: TRAP },
+    darker:     { bg: "#606060", text: "#ffffff", border: "#444",
+                  gradient: "linear-gradient(180deg,#707070 0%,#505050 100%)", clipPath: TRAP },
+    exe:        { bg: "#4a4a6a", text: "#e8e8ff", border: "#2a2a4a", textSize: "18px", h: "2.4rem",
                   gradient: "linear-gradient(180deg,#606080 0%,#303050 100%)", clipPath: TRAP },
-    num:        { bg: "#3a3a3a", text: "#fff", border: "#222",    textSize: "24px", h: "2.3rem",
-                  gradient: "linear-gradient(180deg,#4a4a4a 0%,#2c2c2c 100%)", clipPath: TRAP },
-    op:         { bg: "#3a3a3a", text: "#fff", border: "#222",    textSize: "22px", h: "2.3rem",
-                  gradient: "linear-gradient(180deg,#4a4a4a 0%,#2c2c2c 100%)", clipPath: TRAP },
-    pink2:      { bg: "#7a2090", text: "#fff", border: "#5a1070", textSize: "16px", h: "2.3rem",
-                  gradient: "linear-gradient(180deg,#9030b0 0%,#581068 100%)", clipPath: TRAP },
+    num:        { bg: "#606060", text: "#fff", border: "#444",    textSize: "24px", h: "2.4rem",
+                  gradient: "linear-gradient(180deg,#707070 0%,#505050 100%)", clipPath: TRAP },
+    op:         { bg: "#606060", text: "#fff", border: "#444",    textSize: "22px", h: "2.4rem",
+                  gradient: "linear-gradient(180deg,#707070 0%,#505050 100%)", clipPath: TRAP },
+    pink2:      { bg: "#b0204a", text: "#fff", border: "#800030", textSize: "16px", h: "2.4rem",
+                  gradient: "#b0204a", clipPath: TRAP },
   };
 
   /* ─── LCD screen ─── */
@@ -924,12 +924,40 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       boxShadow: "inset 0 2px 6px rgba(0,0,0,0.3)",
       height: 120, overflow: "hidden",
     }}>
-      <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1" }}>
-        {screenMode === "setMenu" ? "payment"
-          : screenMode === "cash" ? "Cash Flow"
-          : screenMode === "cashEditor" ? "D.Editor"
-          : screenMode === "amrt" ? "Amortization"
-          : "Compound Int."}
+      <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <span>
+          {screenMode === "setMenu" ? "payment"
+            : screenMode === "cash" ? "Cash Flow"
+            : screenMode === "cashEditor" ? "D.Editor"
+            : screenMode === "amrt" ? "Amortization"
+            : "Compound Int."}
+        </span>
+        {(() => {
+          let vStart = 0, total = 0;
+          const VIEW = 3;
+          if (screenMode === "amrt") {
+            total = 15;
+            vStart = Math.max(0, Math.min(amCursor + 1 - VIEW + 1, total - VIEW));
+          } else if (screenMode === "cash") {
+            total = 6;
+            vStart = Math.max(0, Math.min(cashMainCursor - VIEW + 1, total - VIEW));
+          } else if (screenMode === "cashEditor") {
+            total = cashEditorFlows.length;
+            vStart = total <= VIEW ? 0 : Math.max(0, Math.min(cashEditorCursor - VIEW + 1, total - VIEW));
+          } else if (screenMode !== "setMenu") {
+            total = 6;
+            vStart = Math.max(0, Math.min(cursor + 1 - VIEW + 1, total - VIEW));
+          }
+          const hasAbove = vStart > 0;
+          const hasBelow = vStart + VIEW < total;
+          if (!hasAbove && !hasBelow) return null;
+          return (
+            <span style={{ display: "flex", flexDirection: "column", fontSize: 16, lineHeight: 1, color: "#444", fontWeight: "bold", gap: 0 }}>
+              {hasAbove && <span>▲</span>}
+              {hasBelow && <span>▼</span>}
+            </span>
+          );
+        })()}
       </div>
 
       {screenMode === "amrt" ? (() => {
@@ -1329,30 +1357,30 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2.5fr 1fr 1fr", gap: 4, marginBottom: 4 }}>
-          <CalcBtn label="SHIFT" style={{ ...S.silver, textSize: "7px" }} active={shiftActive} onClick={() => setShiftActive(s => !s)} />
-          <CalcBtn label="ALPHA" style={{ ...S.silver, textSize: "7px" }} onClick={() => {}} />
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2.5fr 1fr 1fr", gap: 4, marginBottom: 60, gridAutoRows: "24px", overflow: "visible" }}>
+          <CalcBtn label="SHIFT" style={{ bg: "#c8c8c8", text: "#111", gradient: "#c8c8c8", textSize: "9px", clipPath: undefined, borderRadius: "50%", border: "transparent", noShadow: true, noSpacer: true }} active={shiftActive} onClick={() => setShiftActive(s => !s)} />
+          <CalcBtn label="ALPHA" style={{ bg: "#c8c8c8", text: "#111", gradient: "#c8c8c8", textSize: "9px", clipPath: undefined, borderRadius: "50%", border: "transparent", noShadow: true, noSpacer: true }} onClick={() => {}} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", transform: "translateY(20px)", zIndex: 10, position: "relative" }}>
             <ReplayPad />
           </div>
-          <CalcBtn label="SET UP" style={{ ...S.silver, textSize: "7px" }} onClick={() => {}} />
-          <CalcBtn label="ON" style={{ ...S.silver, textSize: "9px" }} onClick={() => {
+          <CalcBtn label="SET UP" style={{ bg: "#c8c8c8", text: "#111", gradient: "#c8c8c8", textSize: "7px", clipPath: undefined, borderRadius: "50%", border: "transparent", noShadow: true, noSpacer: true }} onClick={() => {}} />
+          <CalcBtn label="ON" style={{ bg: "#c8c8c8", text: "#111", gradient: "#c8c8c8", textSize: "9px", clipPath: undefined, borderRadius: "50%", border: "transparent", noShadow: true, noSpacer: true }} onClick={() => {
             if (!poweredOn) { setPoweredOn(true); setShiftActive(false); }
           }} />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2.5fr 1fr 1fr", gap: 4, marginBottom: 6 }}>
-          <CalcBtn label="SC1" style={{ bg: "#111", text: "#7ecfff", border: "#333", textSize: "8px" }} onClick={() => {}} />
-          <CalcBtn label="SC2" style={{ bg: "#111", text: "#7ecfff", border: "#333", textSize: "8px" }} onClick={() => {}} />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2.5fr 1fr 1fr", gap: 4, marginBottom: 6, gridAutoRows: "36px" }}>
+          <CalcBtn label="SC1" style={{ bg: "#111", text: "#7ecfff", border: "transparent", textSize: "13px", noShadow: true }} onClick={() => {}} />
+          <CalcBtn label="SC2" style={{ bg: "#111", text: "#7ecfff", border: "transparent", textSize: "13px", noShadow: true }} onClick={() => {}} />
           <div />
-          <CalcBtn label="ESC" style={{ bg: "#111", text: "#7ecfff", border: "#333", textSize: "9px" }} onClick={() => {
+          <CalcBtn label="ESC" style={{ bg: "#111", text: "#7ecfff", border: "transparent", textSize: "13px", noShadow: true }} onClick={() => {
             setEditing(false); setBuffer(""); setTextCursor(-1);
             if (screenMode === "cashEditor") setScreenMode("cash");
           }} />
-          <CalcBtn label="SOLVE" style={{ bg: "#6878a8", text: "#fff", border: "#4a5888", textSize: "7px" }} active={activeButtonId === "solve"} pressed={pressedButtonId === "solve"} btnId="solve" onClick={pressSOLVE} />
+          <CalcBtn label="SOLVE" style={{ bg: "#6878a8", text: "#fff", border: "transparent", textSize: "12px", noShadow: true }} active={activeButtonId === "solve"} pressed={pressedButtonId === "solve"} btnId="solve" onClick={pressSOLVE} />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12, gridAutoRows: "36px" }}>
           <CalcBtn label="SMPL" style={S.green} onClick={() => msg("—")} />
           <CalcBtn label="CMPD" style={S.green} active={activeButtonId === "cmpd"} pressed={pressedButtonId === "cmpd"} btnId="cmpd" onClick={() => { setScreenMode("cmpd"); setSolved(null); setCursor(-1); setBuffer(""); setEditing(false); setTextCursor(-1); }} />
           <CalcBtn label="CASH" style={S.green} active={activeButtonId === "cash"} pressed={pressedButtonId === "cash"} btnId="cash" onClick={() => { setScreenMode("cash"); setCashMainCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); }} />
@@ -1361,7 +1389,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           <CalcBtn label="STAT" style={S.green} onClick={() => msg("—")} />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12, gridAutoRows: "36px" }}>
           <CalcBtn label="CNVR" style={S.green} onClick={() => msg("—")} />
           <CalcBtn label="COST" style={S.green} onClick={() => msg("—")} />
           <CalcBtn label="DAYS" style={S.green} onClick={() => msg("—")} />
@@ -1370,42 +1398,44 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           <CalcBtn label="BEVN" style={S.green} onClick={() => msg("—")} />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12, gridAutoRows: "34px" }}>
-          <CalcBtn label="(−)" style={{ ...S.grayWhite, textSize: "9px" }} active={activeButtonId === "sign"} pressed={pressedButtonId === "sign"} btnId="sign" onClick={() => { playClickSound("sign"); spawnFlyChar("sign"); pressSign(); }} />
-          <CalcBtn label="RCL" style={{ ...S.grayWhite, textSize: "8px" }} onClick={() => {}} />
-          <CalcBtn label="(" style={S.grayWhite} onClick={() => {}} />
-          <CalcBtn label=")" style={S.grayWhite} onClick={() => {}} />
-          <CalcBtn label="CTLG" style={{ ...S.grayWhite, textSize: "7px" }} onClick={() => {}} />
-          <CalcBtn label="M+" style={{ ...S.grayWhite, textSize: "8px" }} onClick={() => {}} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12, gridAutoRows: "36px" }}>
+          <CalcBtn label="(−)" style={{ ...S.grayWhite, textSize: "13px" }} active={activeButtonId === "sign"} pressed={pressedButtonId === "sign"} btnId="sign" onClick={() => { playClickSound("sign"); spawnFlyChar("sign"); pressSign(); }} />
+          <CalcBtn label="RCL" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
+          <CalcBtn label="(" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
+          <CalcBtn label=")" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
+          <CalcBtn label="CTLG" style={{ ...S.grayWhite, textSize: "11px" }} onClick={() => {}} />
+          <CalcBtn label="M+" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "44px" }}>
+        <div style={{ padding: "0 10px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "48px" }}>
           <CalcBtn label="7" style={S.num} active={activeButtonId === "7"} pressed={pressedButtonId === "7"} btnId="7" onClick={() => { playClickSound("7"); spawnFlyChar("7"); pressNum("7"); }} />
           <CalcBtn label="8" style={S.num} active={activeButtonId === "8"} pressed={pressedButtonId === "8"} btnId="8" onClick={() => { playClickSound("8"); spawnFlyChar("8"); pressNum("8"); }} />
           <CalcBtn label="9" style={S.num} active={activeButtonId === "9"} pressed={pressedButtonId === "9"} btnId="9" onClick={() => { playClickSound("9"); spawnFlyChar("9"); pressNum("9"); }} />
           <CalcBtn label="DEL" style={S.pink2} onClick={pressDEL} />
           <CalcBtn label="AC" style={S.pink2} onClick={pressAC} />
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "44px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "48px" }}>
           <CalcBtn label="4" style={S.num} active={activeButtonId === "4"} pressed={pressedButtonId === "4"} btnId="4" onClick={() => { playClickSound("4"); spawnFlyChar("4"); pressNum("4"); }} />
           <CalcBtn label="5" style={S.num} active={activeButtonId === "5"} pressed={pressedButtonId === "5"} btnId="5" onClick={() => { playClickSound("5"); spawnFlyChar("5"); pressNum("5"); }} />
           <CalcBtn label="6" style={S.num} active={activeButtonId === "6"} pressed={pressedButtonId === "6"} btnId="6" onClick={() => { playClickSound("6"); spawnFlyChar("6"); pressNum("6"); }} />
           <CalcBtn label="×" style={S.op} onClick={() => pressOp("×")} />
           <CalcBtn label="÷" style={S.op} onClick={() => pressOp("÷")} />
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "44px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "48px" }}>
           <CalcBtn label="1" style={S.num} active={activeButtonId === "1"} pressed={pressedButtonId === "1"} btnId="1" onClick={() => { playClickSound("1"); spawnFlyChar("1"); pressNum("1"); }} />
           <CalcBtn label="2" style={S.num} active={activeButtonId === "2"} pressed={pressedButtonId === "2"} btnId="2" onClick={() => { playClickSound("2"); spawnFlyChar("2"); pressNum("2"); }} />
           <CalcBtn label="3" style={S.num} active={activeButtonId === "3"} pressed={pressedButtonId === "3"} btnId="3" onClick={() => { playClickSound("3"); spawnFlyChar("3"); pressNum("3"); }} />
           <CalcBtn label="+" style={S.op} onClick={() => pressOp("+")} />
           <CalcBtn label="−" style={S.op} onClick={() => pressOp("−")} />
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, gridAutoRows: "44px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, gridAutoRows: "48px" }}>
           <CalcBtn label="0" style={S.num} active={activeButtonId === "0"} pressed={pressedButtonId === "0"} btnId="0" onClick={() => { playClickSound("0"); spawnFlyChar("0"); pressNum("0"); }} />
           <CalcBtn label="." style={S.num} active={activeButtonId === "dot"} pressed={pressedButtonId === "dot"} btnId="dot" onClick={() => { playClickSound("dot"); spawnFlyChar("dot"); pressNum("."); }} />
-          <CalcBtn label="×10ˣ" style={{ ...S.op, textSize: "8px" }} onClick={() => {}} />
+          <CalcBtn label="×10ˣ" style={{ ...S.op, textSize: "17px" }} onClick={() => {}} />
           <CalcBtn label="Ans" style={S.op} onClick={() => {}} />
           <CalcBtn label="EXE" style={S.exe} active={activeButtonId === "exe"} pressed={pressedButtonId === "exe"} btnId="exe" onClick={pressEXE} />
+        </div>
         </div>
 
         <div style={{ position:"absolute", top:"50%", left:0, width:14, bottom:0,
