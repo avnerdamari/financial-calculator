@@ -941,11 +941,11 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       boxShadow: "inset 0 2px 6px rgba(0,0,0,0.3)",
       height: 120, overflow: "hidden",
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 2, paddingBottom: 2, borderBottom: "1px solid #999" }}>
-        <div style={{ display: "flex", gap: 5 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 0, paddingBottom: 1, borderBottom: "1px solid #999" }}>
+        <div style={{ display: "flex", gap: 4 }}>
           {STATUS_ITEMS.map(({ key, active }) => (
             <span key={key} style={{
-              fontSize: "14px", fontWeight: "bold", fontFamily: "monospace",
+              fontSize: "10px", fontWeight: "bold", fontFamily: "monospace",
               color: active ? "#111" : "#ccc",
             }}>{key}</span>
           ))}
@@ -1426,7 +1426,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           <CalcBtn label="AMRT" style={S.green} active={activeButtonId === "amrt"} pressed={pressedButtonId === "amrt"} btnId="amrt" onClick={() => { setScreenMode("amrt"); setAmCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); }} />
           <CalcBtn label="COMP" style={S.green} onClick={() => msg("—")} />
           <div style={{ position: "relative", display: "grid" }}>
-            <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "10px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>S-MENU</span>
+            <span style={{ position: "absolute", top: -5, left: 0, right: 0, textAlign: "center", fontSize: "9px", fontWeight: "bold", color: "#8B4513", whiteSpace: "nowrap", transform: "scale(0.8)", transformOrigin: "center", lineHeight: 1, pointerEvents: "none" }}>S-MENU</span>
             <CalcBtn label="STAT" style={S.green} onClick={() => msg("—")} />
           </div>
         </div>
