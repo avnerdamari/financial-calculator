@@ -243,7 +243,9 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
   const [endBegin, setEndBegin] = useState<"END" | "BEGIN">("END");
   const [solved, setSolved] = useState<Field | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
-  const [screenMode, setScreenMode] = useState<"cmpd" | "setMenu" | "cash" | "cashEditor" | "amrt">("cmpd");
+  const [screenMode, setScreenMode] = useState<"cmpd" | "setMenu" | "cash" | "cashEditor" | "amrt" | "clrMenu">("cmpd");
+  const [clrOption, setClrOption] = useState(0); // 0=Setup, 1=Memory, 2=All
+  const [clrConfirm, setClrConfirm] = useState<false | "confirm" | "done">(false);
   const [setMenuOrigin, setSetMenuOrigin] = useState<"cmpd" | "amrt">("cmpd");
   const [pendingOp, setPendingOp] = useState<"×" | "÷" | "+" | "−" | null>(null);
   const [pendingLeft, setPendingLeft] = useState<string>("0");
@@ -518,8 +520,23 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     setBuffer(""); setEditing(false);
   }
 
+  function resetAll() {
+    setValues({ n: "0", I: "0", PV: "0", PMT: "0", FV: "0" });
+    setCursor(-1); setSolved(null); setEditing(false); setBuffer(""); setTextCursor(-1);
+    setEndBegin("END"); setPendingOp(null); setPendingLeft("0");
+    setCashI("10"); setCashEditorFlows(["-10000", "3000", "3000"]);
+    setCashNPV(""); setCashIRR(""); setCashNFV(""); setCashPBP(""); setCashSolved(null); setCashMainCursor(0);
+    setAmPM1("1"); setAmPM2("1"); setAmPY("12"); setAmCY("12"); setAmCursor(0);
+    setAmINT(""); setAmPRN(""); setAmBAL(""); setAmSumINT(""); setAmSumPRN(""); setAmSolved(null);
+    setShiftActive(false); setScreenMode("cmpd");
+  }
+
   function pressNum(d: string) {
     if (!poweredOn) return;
+    if (shiftActive && d === "9") {
+      setClrOption(0); setScreenMode("clrMenu"); setShiftActive(false); return;
+    }
+    if (screenMode === "clrMenu") return;
     if (screenMode === "setMenu") {
       if (d === "1") { setEndBegin("BEGIN"); setScreenMode(setMenuOrigin); if (setMenuOrigin === "amrt") setAmCursor(-1); validateEndBegin("BEGIN"); }
       else if (d === "2") { setEndBegin("END"); setScreenMode(setMenuOrigin); if (setMenuOrigin === "amrt") setAmCursor(-1); validateEndBegin("END"); }
@@ -634,6 +651,14 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
 
   function pressEXE() {
     if (!poweredOn) return;
+    if (screenMode === "clrMenu") {
+      if (clrConfirm === "done") { resetAll(); setClrConfirm(false); return; }
+      if (clrConfirm === "confirm") { setClrConfirm("done"); return; }
+      if (clrOption === 2) { setClrConfirm("confirm"); return; }
+      else if (clrOption === 0) { setEndBegin("END"); setShiftActive(false); setScreenMode("cmpd"); }
+      else { setScreenMode("cmpd"); }
+      return;
+    }
     if (screenMode === "setMenu") { setScreenMode(setMenuOrigin); if (setMenuOrigin === "amrt") setAmCursor(-1); return; }
     if (screenMode === "cash") {
       if (cashMainCursor === 1) {
@@ -716,6 +741,10 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
 
   function pressAC() {
     if (!poweredOn) return;
+    if (screenMode === "clrMenu") {
+      if (clrConfirm === "done") { resetAll(); setClrConfirm(false); return; }
+      setClrConfirm(false); setScreenMode("cmpd"); return;
+    }
     if (shiftActive) { setPoweredOn(false); setShiftActive(false); onPowerOff?.(); return; }
     if (screenMode === "setMenu") { setScreenMode(setMenuOrigin); if (setMenuOrigin === "amrt") setAmCursor(-1); return; }
     if (screenMode === "cashEditor") {
@@ -816,6 +845,10 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
 
   function moveCursor(dir: 1 | -1) {
     if (!poweredOn) return;
+    if (screenMode === "clrMenu") {
+      setClrOption(o => Math.max(0, Math.min(2, o + dir)));
+      return;
+    }
     if (screenMode === "setMenu") {
       setEndBegin(dir < 0 ? "BEGIN" : "END");
       return;
@@ -977,17 +1010,39 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           );
         })()}
       </div>
-      <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1", marginTop: -4 }}>
+      <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1", marginTop: -4, textAlign: screenMode === "clrMenu" ? "center" : "left" }}>
         <span>
           {screenMode === "setMenu" ? "payment"
             : screenMode === "cash" ? "Cash Flow"
             : screenMode === "cashEditor" ? "D.Editor"
             : screenMode === "amrt" ? "Amortization"
+            : screenMode === "clrMenu" ? (clrConfirm === "done" ? "Reset All" : clrConfirm === "confirm" ? "Reset All?" : "Reset?")
             : "Compound Int."}
         </span>
       </div>
 
-      {screenMode === "amrt" ? (() => {
+      {screenMode === "clrMenu" ? (() => {
+        if (clrConfirm === "done") return (
+          <div style={{ fontSize: 32, fontWeight: "bold", color: "#1a2a0a", padding: "0 3px", height: ROW_H, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 12 }}>Press [AC] key</div>
+        );
+        if (clrConfirm === "confirm") return (
+          <>
+            <div style={{ fontSize: 32, fontWeight: "bold", color: "#1a2a0a", padding: "0 3px", height: ROW_H, display: "flex", alignItems: "center" }}>[EXE]:Yes</div>
+            <div style={{ fontSize: 32, fontWeight: "bold", color: "#1a2a0a", padding: "0 3px", height: ROW_H, display: "flex", alignItems: "center" }}>[ESC]:Cancel</div>
+          </>
+        );
+        const opts = ["Setup:EXE", "Memory:EXE", "All:EXE"];
+        return opts.map((label, i) => (
+          <div key={label} onMouseDown={e => { e.preventDefault(); setClrOption(i); }}
+            style={{ display: "flex", alignItems: "center", padding: "0 3px", height: ROW_H,
+              borderRadius: 2, cursor: "pointer",
+              background: clrOption === i ? "#3a3a9a" : "transparent",
+              color: clrOption === i ? "#fff" : "#1a2a0a",
+              fontSize: 32, fontWeight: "bold" }}>
+            {label}
+          </div>
+        ));
+      })() : screenMode === "amrt" ? (() => {
         const ALL = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
         const VIEW = 3;
         const ci = amCursor + 1;
