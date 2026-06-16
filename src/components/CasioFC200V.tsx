@@ -673,13 +673,14 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       return;
     }
     if (screenMode === "cashEditor") {
+      const wasEditing = editing;
       commitCashBuffer();
       const isLast = cashEditorCursor === cashEditorFlows.length - 1;
-      if (isLast && cashEditorFlows.length < 20) {
+      if (isLast && wasEditing && cashEditorFlows.length < 20) {
         setCashEditorFlows(f => [...f, "0"]);
         setCashEditorCursor(cashEditorFlows.length);
-      } else {
-        setCashEditorCursor(c => Math.min(c + 1, cashEditorFlows.length - 1));
+      } else if (!isLast) {
+        setCashEditorCursor(c => c + 1);
       }
       return;
     }
