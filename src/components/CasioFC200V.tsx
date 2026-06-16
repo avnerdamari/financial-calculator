@@ -939,13 +939,13 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       background: "#b0b0b0", border: "2px solid #999", borderRadius: 4,
       padding: "0px 8px", fontFamily: "monospace",
       boxShadow: "inset 0 2px 6px rgba(0,0,0,0.3)",
-      height: 120, overflow: "hidden",
+      height: 132, overflow: "hidden",
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 0, paddingBottom: 1, borderBottom: "1px solid #999" }}>
-        <div style={{ display: "flex", gap: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 0, paddingBottom: 0, borderBottom: "1px solid #999" }}>
+        <div style={{ display: "flex", gap: 3, marginLeft: -3 }}>
           {STATUS_ITEMS.map(({ key, active }) => (
             <span key={key} style={{
-              fontSize: "10px", fontWeight: "bold", fontFamily: "monospace",
+              fontSize: "7px", fontWeight: "bold", fontFamily: "monospace",
               color: active ? "#111" : "#ccc",
             }}>{key}</span>
           ))}
@@ -970,14 +970,14 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           const hasBelow = vStart + VIEW < total;
           if (!hasAbove && !hasBelow) return null;
           return (
-            <span style={{ display: "flex", flexDirection: "row", fontSize: 12, lineHeight: 1, color: "#444", fontWeight: "bold", gap: 1 }}>
+            <span style={{ display: "flex", flexDirection: "row", fontSize: 12, lineHeight: 1, color: "#444", fontWeight: "bold", gap: 1, marginRight: 4 }}>
               {hasAbove && <span>▲</span>}
               {hasBelow && <span>▼</span>}
             </span>
           );
         })()}
       </div>
-      <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1" }}>
+      <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1", marginTop: -4 }}>
         <span>
           {screenMode === "setMenu" ? "payment"
             : screenMode === "cash" ? "Cash Flow"
