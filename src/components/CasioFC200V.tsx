@@ -271,8 +271,8 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
   // AMRT screen state
   const [amPM1, setAmPM1] = useState("1");
   const [amPM2, setAmPM2] = useState("1");
-  const [amPY,  setAmPY]  = useState("12");
-  const [amCY,  setAmCY]  = useState("12");
+  const [amPY,  setAmPY]  = useState("1");
+  const [amCY,  setAmCY]  = useState("1");
   const [amCursor, setAmCursor] = useState(0);
   const [amINT,    setAmINT]    = useState("");
   const [amPRN,    setAmPRN]    = useState("");
@@ -526,7 +526,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     setEndBegin("END"); setPendingOp(null); setPendingLeft("0");
     setCashI("0"); setCashEditorFlows(["0"]);
     setCashNPV(""); setCashIRR(""); setCashNFV(""); setCashPBP(""); setCashSolved(null); setCashMainCursor(0);
-    setAmPM1("1"); setAmPM2("1"); setAmPY("12"); setAmCY("12"); setAmCursor(0);
+    setAmPM1("1"); setAmPM2("1"); setAmPY("1"); setAmCY("1"); setAmCursor(0);
     setAmINT(""); setAmPRN(""); setAmBAL(""); setAmSumINT(""); setAmSumPRN(""); setAmSolved(null);
     setShiftActive(false); setScreenMode("cmpd");
   }
@@ -897,7 +897,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
   pressButtonRef.current = (id: string) => {
     switch (id) {
       case "cmpd": setScreenMode("cmpd"); setSolved(null); setCursor(-1); setBuffer(""); setEditing(false); setTextCursor(-1); break;
-      case "cash": setScreenMode("cash"); setCashMainCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); break;
+      case "cash": setScreenMode("cash"); setCashMainCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); if (values.I && values.I !== "0") setCashI(values.I); break;
       case "amrt": setScreenMode("amrt"); setAmCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); break;
       case "solve": pressSOLVE(); break;
       case "exe": pressEXE(); break;
@@ -1512,7 +1512,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
         <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12, gridAutoRows: "36px" }}>
           <CalcBtn label="SMPL" style={S.green} onClick={() => msg("—")} />
           <CalcBtn label="CMPD" style={S.green} active={activeButtonId === "cmpd"} pressed={pressedButtonId === "cmpd"} btnId="cmpd" onClick={() => { setScreenMode("cmpd"); setSolved(null); setCursor(-1); setBuffer(""); setEditing(false); setTextCursor(-1); }} />
-          <CalcBtn label="CASH" style={S.green} active={activeButtonId === "cash"} pressed={pressedButtonId === "cash"} btnId="cash" onClick={() => { setScreenMode("cash"); setCashMainCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); }} />
+          <CalcBtn label="CASH" style={S.green} active={activeButtonId === "cash"} pressed={pressedButtonId === "cash"} btnId="cash" onClick={() => { setScreenMode("cash"); setCashMainCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); if (values.I && values.I !== "0") setCashI(values.I); }} />
           <CalcBtn label="AMRT" style={S.green} active={activeButtonId === "amrt"} pressed={pressedButtonId === "amrt"} btnId="amrt" onClick={() => { setScreenMode("amrt"); setAmCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); }} />
           <CalcBtn label="COMP" style={S.green} onClick={() => msg("—")} />
           <div style={{ position: "relative", display: "grid" }}>
