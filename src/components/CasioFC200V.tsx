@@ -1168,12 +1168,11 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       : screenMode === "cashEditor" ? (() => {
         const VIEW = 3;
         const total = cashEditorFlows.length;
-        const vStart = cashEditorCursor;
-        const H = 22;
+        const vStart = total <= VIEW ? 0 : Math.max(0, Math.min(cashEditorCursor - VIEW + 1, total - VIEW));
+        const H = 18;
         const curStored = fmt(cashEditorFlows[cashEditorCursor] ?? "0");
-        const inputVal = editing
-          ? (() => { const text = buffer || "0"; const pos = textCursor < 0 ? text.length : textCursor; return text.slice(0, pos) + "▌" + text.slice(pos); })()
-          : curStored;
+        const inputText = editing ? (buffer || "0") : curStored;
+        const inputPos  = editing ? (textCursor < 0 ? inputText.length : textCursor) : -1;
         return (
           <div>
             <div style={{ display: "flex" }}>
@@ -1202,6 +1201,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
                         height: H, cursor: rowIdx < total ? "pointer" : "default",
                         outline: isCur && rowIdx < total ? "2px solid #3a3ab0" : "none",
                         outlineOffset: -1,
+                        background: isCur && rowIdx < total ? "#999" : "transparent",
                         display: "flex", alignItems: "center", justifyContent: "flex-end",
                         paddingRight: 3, fontSize: 18, fontWeight: "bold", color: "#1a2a0a",
                       }}>
@@ -1212,8 +1212,17 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
               </div>
             </div>
             {/* Input line — below everything, aligned to far left */}
-            <div style={{ fontSize: 18, fontWeight: "bold", color: "#1a2a0a", paddingLeft: 2, marginTop: 2 }}>
-              {inputVal}
+            <div
+              data-value="active"
+              style={{ fontSize: 26, fontWeight: "normal", color: editing ? "#800020" : "#1a2a0a", paddingLeft: 2, marginTop: 2, display: "flex", alignItems: "center" }}
+            >
+              {inputPos >= 0 ? (
+                <>
+                  <span>{inputText.slice(0, inputPos)}</span>
+                  <span style={{ display: "inline-block", width: 1, height: "0.9em", background: "currentColor", margin: "0 1px" }} />
+                  <span>{inputText.slice(inputPos)}</span>
+                </>
+              ) : inputText}
             </div>
           </div>
         );
