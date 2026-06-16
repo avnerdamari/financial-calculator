@@ -260,7 +260,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
   // CASH main screen: 0=I%, 1=Csh, 2=NPV, 3=IRR, 4=NFV, 5=PBP
   const [cashI, setCashI] = useState("10");
   const [cashMainCursor, setCashMainCursor] = useState(0);
-  const [cashEditorFlows, setCashEditorFlows] = useState<string[]>(["-10000", "3000", "3000"]);
+  const [cashEditorFlows, setCashEditorFlows] = useState<string[]>(["0"]);
   const [cashEditorCursor, setCashEditorCursor] = useState(0);
   const [cashNPV, setCashNPV] = useState("");
   const [cashIRR, setCashIRR] = useState("");
@@ -524,7 +524,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     setValues({ n: "0", I: "0", PV: "0", PMT: "0", FV: "0" });
     setCursor(-1); setSolved(null); setEditing(false); setBuffer(""); setTextCursor(-1);
     setEndBegin("END"); setPendingOp(null); setPendingLeft("0");
-    setCashI("10"); setCashEditorFlows(["-10000", "3000", "3000"]);
+    setCashI("0"); setCashEditorFlows(["0"]);
     setCashNPV(""); setCashIRR(""); setCashNFV(""); setCashPBP(""); setCashSolved(null); setCashMainCursor(0);
     setAmPM1("1"); setAmPM2("1"); setAmPY("12"); setAmCY("12"); setAmCursor(0);
     setAmINT(""); setAmPRN(""); setAmBAL(""); setAmSumINT(""); setAmSumPRN(""); setAmSolved(null);
@@ -1010,16 +1010,22 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           );
         })()}
       </div>
-      <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1", marginTop: -4, textAlign: screenMode === "clrMenu" ? "center" : "left" }}>
-        <span>
-          {screenMode === "setMenu" ? "payment"
-            : screenMode === "cash" ? "Cash Flow"
-            : screenMode === "cashEditor" ? "D.Editor"
-            : screenMode === "amrt" ? "Amortization"
-            : screenMode === "clrMenu" ? (clrConfirm === "done" ? "Reset All" : clrConfirm === "confirm" ? "Reset All?" : "Reset?")
-            : "Compound Int."}
-        </span>
-      </div>
+      {screenMode === "cashEditor" ? (
+        <div style={{ display: "flex", alignItems: "center", height: 20, marginTop: -2 }}>
+          <span style={{ minWidth: 20 }}></span>
+          <div style={{ width: "50%", textAlign: "center", fontSize: 16, fontWeight: "bold", color: "#222", lineHeight: "20px" }}>X</div>
+        </div>
+      ) : (
+        <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1", marginTop: -4, textAlign: screenMode === "clrMenu" ? "center" : "left" }}>
+          <span>
+            {screenMode === "setMenu" ? "payment"
+              : screenMode === "cash" ? "Cash Flow"
+              : screenMode === "amrt" ? "Amortization"
+              : screenMode === "clrMenu" ? (clrConfirm === "done" ? "Reset All" : clrConfirm === "confirm" ? "Reset All?" : "Reset?")
+              : "Compound Int."}
+          </span>
+        </div>
+      )}
 
       {screenMode === "clrMenu" ? (() => {
         if (clrConfirm === "done") return (
@@ -1162,36 +1168,55 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       : screenMode === "cashEditor" ? (() => {
         const VIEW = 3;
         const total = cashEditorFlows.length;
-        const vStart = total <= VIEW ? 0 : Math.max(0, Math.min(cashEditorCursor - VIEW + 1, total - VIEW));
-        return Array.from({ length: VIEW }, (_, i) => {
-          const rowIdx = vStart + i;
-          if (rowIdx >= total) return <div key={`empty-${i}`} style={{ height: ROW_H }} />;
-          const isCur = rowIdx === cashEditorCursor;
-          const rowBg    = isCur ? "#3a3a9a" : "transparent";
-          const rowColor = isCur ? "#fff"    : "#1a2a0a";
-          const rawVal = cashEditorFlows[rowIdx];
-          const dispVal = isCur && editing
-            ? (() => {
-                const text = buffer || "0";
-                const pos = textCursor < 0 ? text.length : textCursor;
-                return text.slice(0, pos) + "▌" + text.slice(pos);
-              })()
-            : fmt(rawVal);
-          return (
-            <div key={rowIdx}
-              onMouseDown={e => {
-                e.preventDefault();
-                if (editing) commitCashBuffer();
-                setCashEditorCursor(rowIdx);
-              }}
-              style={{ display: "flex", alignItems: "center", padding: "0 3px", height: ROW_H,
-                borderRadius: 2, cursor: "pointer", background: rowBg, color: rowColor, fontSize: 32 }}
-            >
-              <span style={{ fontWeight: "bold", minWidth: "24px" }}>{rowIdx + 1}:</span>
-              <span style={{ flex: 1, textAlign: "right" }}>{dispVal}</span>
+        const vStart = cashEditorCursor;
+        const H = 22;
+        const curStored = fmt(cashEditorFlows[cashEditorCursor] ?? "0");
+        const inputVal = editing
+          ? (() => { const text = buffer || "0"; const pos = textCursor < 0 ? text.length : textCursor; return text.slice(0, pos) + "▌" + text.slice(pos); })()
+          : curStored;
+        return (
+          <div>
+            <div style={{ display: "flex" }}>
+              {/* Row numbers — outside the bordered column */}
+              <div style={{ minWidth: 20, display: "flex", flexDirection: "column" }}>
+                {Array.from({ length: VIEW }, (_, i) => {
+                  const rowIdx = vStart + i;
+                  return (
+                    <div key={i} style={{ height: H, fontSize: 16, fontWeight: "bold", color: "#333",
+                      display: "flex", alignItems: "center", paddingLeft: 2 }}>
+                      {rowIdx + 1}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Bordered column — 3 data rows only, borders end here */}
+              <div style={{ width: "50%", borderLeft: "2px solid #222", borderRight: "2px solid #222" }}>
+                {Array.from({ length: VIEW }, (_, i) => {
+                  const rowIdx = vStart + i;
+                  const isCur = rowIdx === cashEditorCursor;
+                  const storedVal = rowIdx < total ? fmt(cashEditorFlows[rowIdx]) : "";
+                  return (
+                    <div key={rowIdx >= total ? `empty-${i}` : rowIdx}
+                      onMouseDown={e => { e.preventDefault(); if (rowIdx < total) { if (editing) commitCashBuffer(); setCashEditorCursor(rowIdx); } }}
+                      style={{
+                        height: H, cursor: rowIdx < total ? "pointer" : "default",
+                        outline: isCur && rowIdx < total ? "2px solid #3a3ab0" : "none",
+                        outlineOffset: -1,
+                        display: "flex", alignItems: "center", justifyContent: "flex-end",
+                        paddingRight: 3, fontSize: 18, fontWeight: "bold", color: "#1a2a0a",
+                      }}>
+                      {rowIdx < total && !isCur ? storedVal : ""}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          );
-        });
+            {/* Input line — below everything, aligned to far left */}
+            <div style={{ fontSize: 18, fontWeight: "bold", color: "#1a2a0a", paddingLeft: 2, marginTop: 2 }}>
+              {inputVal}
+            </div>
+          </div>
+        );
       })()
 
       : screenMode === "setMenu" ? (
