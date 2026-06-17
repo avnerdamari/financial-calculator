@@ -27,3 +27,6 @@ dist-ssr
 
 .env
 .env.local
+
+# Local backups — not tracked in git
+backup/
