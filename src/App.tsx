@@ -5,6 +5,31 @@ import type { CMPDParams, DemoStep } from "./demo/steps";
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
 
+/* ─── כרטיס שאלה להקלטה — שנה את QUESTION_INDEX כדי לעבור בין שאלות ─── */
+const SHOW_QUESTION_CARD = false;   // ← false כדי להסתיר לפני פריסה
+const QUESTION_INDEX = 0;          // ← 0 = CMPD | 1 = CASH | 2 = AMRT
+
+const DEMO_QUESTIONS = [
+  {
+    mode: "CMPD — ריבית דריבית",
+    color: "#1a4fa3",
+    bg: "#e8f0ff",
+    text: "הלוואה של 100,000 ₪ לתקופה של 10 שנים בריבית שנתית 5%.\nמה התשלום החודשי? (לוח שפיצר)",
+  },
+  {
+    mode: "CASH — תזרים מזומנים",
+    color: "#085041",
+    bg: "#e1f5ee",
+    text: "השקעה של 50,000 ₪ מניבה: שנה 1 — 15,000 ₪, שנה 2 — 20,000 ₪, שנה 3 — 25,000 ₪.\nשיעור היוון 8%. מה ה-NPV?",
+  },
+  {
+    mode: "AMRT — לוח סילוקין",
+    color: "#633806",
+    bg: "#faeeda",
+    text: "הלוואה של 200,000 ₪ ל-20 שנה בריבית 4.5%.\nמה סכום הריבית שנצבר בשנה הראשונה?",
+  },
+];
+
 export default function App() {
   const calcRef = useRef<CalcHandle>(null);
   const calcContainerRef = useRef<HTMLDivElement>(null);
@@ -93,6 +118,16 @@ export default function App() {
          style={{ background: "#1a1a2e" }}>
       <h1 className="text-white text-2xl font-bold mb-1 tracking-wide">Casio FC-200V Simulator</h1>
       <p className="text-slate-400 text-sm mb-4">Financial Consultant — Interactive Simulator</p>
+
+      {SHOW_QUESTION_CARD && (() => {
+        const q = DEMO_QUESTIONS[QUESTION_INDEX];
+        return (
+          <div style={{ background: q.bg, border: `2px solid ${q.color}`, borderRadius: 14, padding: "14px 20px", marginBottom: 16, width: 360, textAlign: "right", direction: "rtl" }}>
+            <div style={{ fontSize: 12, fontWeight: "bold", color: q.color, marginBottom: 6, letterSpacing: 1 }}>{q.mode}</div>
+            <div style={{ fontSize: 15, color: "#1a1a1a", lineHeight: 1.7, whiteSpace: "pre-line" }}>{q.text}</div>
+          </div>
+        );
+      })()}
 
       {DEMO_MODE && (
         <DemoPanel

@@ -30,3 +30,7 @@ dist-ssr
 
 # Local backups — not tracked in git
 backup/
+
+# Android signing keys — NEVER commit
+*.jks
+*.keystore

@@ -40,6 +40,10 @@ body {
   50% { opacity: 0; }
 }
 
+.cursor-blink {
+  animation: recBlink 1s step-end infinite;
+}
+
 @keyframes flyToScreen {
   0%   { opacity: 1; transform: translateX(-50%) translateY(0)      scale(1.0); }
   50%  { opacity: 1; transform: translateX(-50%) translateY(-130px) scale(1.5); }

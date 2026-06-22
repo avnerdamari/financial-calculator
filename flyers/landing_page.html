@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<title>סימולטור מחשבון פיננסי Casio FC-200V</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* כותרת */
+  .header {
+    background: #1a3a8a;
+    padding: 22px 30px 18px;
+    text-align: center;
+    color: white;
+  }
+  .header .sup { font-size: 11px; letter-spacing: 3px; color: #aac4ff; margin-bottom: 5px; }
+  .header h1 { font-size: 32px; font-weight: bold; margin-bottom: 5px; }
+  .header .tag { font-size: 14px; color: #ccdeff; }
+
+  /* גוף */
+  .body { flex: 1; padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* שורת מחשבון */
+  .calc-row {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .calc-img {
+    flex-shrink: 0;
+    width: 130px;
+  }
+  .calc-img img { width: 130px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+  .calc-desc { flex: 1; }
+  .calc-desc p {
+    font-size: 13px;
+    color: #333;
+    line-height: 1.8;
+    text-align: justify;
+  }
+
+  /* מודולים */
+  .modules {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .module {
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .module.cmpd { background: #e6f1fb; border: 1.5px solid #a8c8ef; }
+  .module.cash { background: #e1f5ee; border: 1.5px solid #8fd5bb; }
+  .module.amrt { background: #faeeda; border: 1.5px solid #e8c48a; }
+  .module .name { font-size: 20px; font-weight: bold; margin-bottom: 3px; }
+  .module.cmpd .name { color: #0c447c; }
+  .module.cash .name { color: #085041; }
+  .module.amrt .name { color: #633806; }
+  .module .lbl { font-size: 12px; font-weight: bold; margin-bottom: 3px; }
+  .module.cmpd .lbl { color: #0c447c; }
+  .module.cash .lbl { color: #085041; }
+  .module.amrt .lbl { color: #633806; }
+  .module .vars { font-size: 11px; color: #555; }
+
+  /* ברקודים */
+  .qr-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .qr-card {
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    border: 2.5px solid;
+  }
+  .qr-card.calc { border-color: #1a3a8a; background: #f0f5ff; }
+  .qr-card.video { border-color: #7c3aed; background: #f5f0ff; }
+  .qr-card .qr-title { font-size: 16px; font-weight: bold; }
+  .qr-card.calc .qr-title { color: #1a3a8a; }
+  .qr-card.video .qr-title { color: #7c3aed; }
+  .qr-card .qr-note { font-size: 11px; color: #555; text-align: center; line-height: 1.6; }
+  .qr-card .url { font-size: 10px; color: #888; direction: ltr; margin-top: 2px; }
+
+  /* מורה */
+  .tutor {
+    background: #f5f7ff;
+    border: 2px solid #1a3a8a;
+    border-radius: 12px;
+    padding: 14px 20px;
+  }
+  .tutor h2 { font-size: 15px; color: #1a3a8a; margin-bottom: 6px; }
+  .tutor p { font-size: 12.5px; color: #444; line-height: 1.7; }
+
+  /* פוטר */
+  .footer {
+    background: #1a3a8a;
+    color: white;
+    padding: 12px 28px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 2;
+  }
+  .footer a { color: #aac4ff; text-decoration: none; }
+
+  @media print {
+    @page { size: A4; margin: 0; }
+    body { background: white; padding: 0; }
+    .page { width: 210mm; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="sup">CASIO FC-200V · DIGITAL SIMULATOR</div>
+    <h1>סימולטור מחשבון פיננסי</h1>
+    <div class="tag">גרסה דיגיטלית חינמית — עובד ישירות מהסלולרי, ללא הורדה</div>
+  </div>
+
+  <div class="body">
+
+    <div class="calc-row">
+      <div class="calc-img">
+        <img src="calculator.png" alt="Casio FC-200V">
+      </div>
+      <div class="calc-desc">
+        <p>
+          המחשבון הפיננסי Casio FC-200V הוא הכלי הסטנדרטי בקורסי מימון ברחבי הארץ.
+          הסימולטור הדיגיטלי מאפשר לבצע את אותם החישובים בדיוק — ישירות מהסלולרי או המחשב,
+          ללא צורך לשאת את המחשבון הפיזי. ממשק זהה, לחצנים זהים, תוצאות זהות.
+        </p>
+      </div>
+    </div>
+
+    <div class="modules">
+      <div class="module cmpd">
+        <div class="name">CMPD</div>
+        <div class="lbl">ריבית דריבית</div>
+        <div class="vars">n · I% · PV · PMT · FV</div>
+      </div>
+      <div class="module cash">
+        <div class="name">CASH</div>
+        <div class="lbl">תזרים מזומנים</div>
+        <div class="vars">NPV · IRR · NFV · PBP</div>
+      </div>
+      <div class="module amrt">
+        <div class="name">AMRT</div>
+        <div class="lbl">לוח סילוקין</div>
+        <div class="vars">INT · PRN · BAL</div>
+      </div>
+    </div>
+
+    <div class="qr-section">
+      <div class="qr-card calc">
+        <div class="qr-title">כניסה לסימולטור</div>
+        <div id="qr-calc"></div>
+        <div class="qr-note">סרוק עם הסלולרי<br>עובד על iPhone ו-Android<br><strong>חינם לחלוטין · ללא הורדה</strong></div>
+        <div class="url">financial-calculator-rho-orpin.vercel.app</div>
+      </div>
+      <div class="qr-card video">
+        <div class="qr-title">סרטון הדגמה</div>
+        <div id="qr-video"></div>
+        <div class="qr-note">צפה בהדגמה מלאה<br>CMPD · CASH · AMRT<br>בפעולה</div>
+        <div class="url">youtube.com/watch?v=YJY0pLaUFYQ</div>
+      </div>
+    </div>
+
+    <div class="tutor">
+      <h2>מורה פרטי — מימון, סטטיסטיקה ומתמטיקה</h2>
+      <p>
+        זקוק לעזרה בחומר הקורס? אבנר דמארי מלמד פרטני ב-Zoom, פרונטלי או בתיאום מיקום —
+        הסברים ברורים, תרגול ממוקד, הכנה לבחינות. ניסיון רב בהוראת מימון, סטטיסטיקה ומתמטיקה
+        לסטודנטים בשלבים שונים.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <strong>לשאלות, הערות ולקביעת שיעור פרטי:</strong><br>
+    אבנר דמארי &nbsp;|&nbsp; 054-4242706 &nbsp;|&nbsp; avnerdamari48@gmail.com
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+new QRCode(document.getElementById('qr-calc'), {
+  text: 'https://financial-calculator-rho-orpin.vercel.app',
+  width: 140, height: 140,
+  colorDark: '#1a3a8a', colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+new QRCode(document.getElementById('qr-video'), {
+  text: 'https://www.youtube.com/watch?v=YJY0pLaUFYQ',
+  width: 140, height: 140,
+  colorDark: '#7c3aed', colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+</script>
+</body>
+</html>
