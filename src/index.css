@@ -49,3 +49,45 @@ body {
   50%  { opacity: 1; transform: translateX(-50%) translateY(-130px) scale(1.5); }
   100% { opacity: 0; transform: translateX(-50%) translateY(-240px) scale(0.7); }
 }
+
+/* ───── Formula Sheet — print styles ───── */
+@media print {
+  /* Hide everything that isn't the sheet */
+  .no-print { display: none !important; }
+
+  /* Remove overlay chrome so the paper prints naturally */
+  .formula-sheet-overlay {
+    position: static !important;
+    background: none !important;
+    overflow: visible !important;
+    z-index: auto !important;
+    padding: 0 !important;
+    inset: unset !important;
+  }
+
+  .formula-sheet-overlay > div:first-child { /* paper wrapper */
+    padding: 0 !important;
+  }
+
+  .formula-sheet-paper {
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Contenteditable: hide empty placeholder, remove border */
+  [contenteditable][data-placeholder]:empty::before {
+    display: none !important;
+  }
+  [contenteditable] {
+    border: none !important;
+    outline: none !important;
+  }
+}
+
+/* Contenteditable placeholder on screen */
+[contenteditable][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: #bbb;
+  pointer-events: none;
+}

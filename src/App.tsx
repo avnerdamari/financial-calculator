@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import CasioFC200V, { type CalcHandle } from "./components/CasioFC200V";
 import DemoPanel from "./components/DemoPanel";
+import FormulaSheetPanel from "./components/FormulaSheetPanel";
 import type { CMPDParams, DemoStep } from "./demo/steps";
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
@@ -47,6 +48,7 @@ export default function App() {
   const [isPracticing, setIsPracticing] = useState(false);
   const [notification, setNotification] = useState<{ text: string; isError: boolean } | null>(null);
   const notifTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showFormulaSheet, setShowFormulaSheet] = useState(false);
 
   const handleNotification = useCallback((text: string, isError: boolean) => {
     if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
@@ -117,7 +119,17 @@ export default function App() {
     <div className="min-h-screen flex flex-col items-center justify-start py-8 px-4"
          style={{ background: "#1a1a2e" }}>
       <h1 className="text-white text-2xl font-bold mb-1 tracking-wide">Casio FC-200V Simulator</h1>
-      <p className="text-slate-400 text-sm mb-4">Financial Consultant — Interactive Simulator</p>
+      <p className="text-slate-400 text-sm mb-3">Financial Consultant — Interactive Simulator</p>
+
+      <button
+        onClick={() => setShowFormulaSheet(true)}
+        className="no-print mb-4 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
+        style={{ background: "linear-gradient(135deg,#1a4fa3,#4a1a7a)", color: "white",
+                 boxShadow: "0 2px 12px rgba(74,26,122,0.4)", border: "1px solid rgba(255,255,255,0.15)" }}>
+        📄 דף נוסחאות למבחן
+      </button>
+
+      {showFormulaSheet && <FormulaSheetPanel onClose={() => setShowFormulaSheet(false)} />}
 
       {SHOW_QUESTION_CARD && (() => {
         const q = DEMO_QUESTIONS[QUESTION_INDEX];
