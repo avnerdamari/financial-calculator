@@ -8,6 +8,16 @@
 - Scope: `avner-s-projects2` · Project: `financial-calculator`
 - פריסה ידנית: `vercel --prod` (אבנר מריץ בעצמו)
 
+## היסטוריית גרסאות (git tag)
+
+| גרסה | תאריך | הערות |
+|------|-------|-------|
+| v1.2.0 | 2026-07-02 | מצב CNVR (המרת ריבית) — n / I% / EFF:Solve / APR:Solve |
+| v1.1.0 | — | תיקון מינוס ב-CASH |
+| v1.0.0 | — | גרסה ראשונה |
+
+⚠️ **פתוח (לא committed):** מחיקת `FormulaSheetPanel.tsx` + הסרתו מ-`App.tsx` — קיים ב-working tree מ-commit `ee393ad` ואילך, טרם הוחלט אם לשמור או לשחזר. לא נגעתי בזה ב-2026-07-02.
+
 ## תיאור קצר
 
 סימולטור עצמאי של מחשבון פיננסי Casio FC-200V.
