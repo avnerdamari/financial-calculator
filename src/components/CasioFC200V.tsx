@@ -218,7 +218,7 @@ function CalcBtn({
           const isAC  = lbl === "ac";
           const isDEL = lbl === "del";
           const isSOLVE = lbl === "solve";
-          const isMode  = ["smpl","cmpd","cash","amrt","comp","stat"].includes(lbl);
+          const isMode  = ["smpl","cmpd","cash","amrt","comp","stat","cnvr"].includes(lbl);
           if (isEXE) {
             [0, 0.07].forEach((d, i) => {
               const o2 = ctx.createOscillator(); const g2 = ctx.createGain();
@@ -326,7 +326,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
   const [endBegin, setEndBegin] = useState<"END" | "BEGIN">("END");
   const [solved, setSolved] = useState<Field | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
-  const [screenMode, setScreenMode] = useState<"comp" | "smpl" | "cmpd" | "setMenu" | "cash" | "cashEditor" | "amrt" | "clrMenu" | "bond">("comp");
+  const [screenMode, setScreenMode] = useState<"comp" | "smpl" | "cmpd" | "setMenu" | "cash" | "cashEditor" | "amrt" | "clrMenu" | "bond" | "cnvr">("comp");
   const [clrOption, setClrOption] = useState(0); // 0=Setup, 1=Memory, 2=All
   const [clrConfirm, setClrConfirm] = useState<false | "confirm" | "done">(false);
   const [setMenuOrigin, setSetMenuOrigin] = useState<"cmpd" | "amrt">("cmpd");
@@ -393,6 +393,14 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
   const [amSumINT, setAmSumINT] = useState("");
   const [amSumPRN, setAmSumPRN] = useState("");
   const [amSolved, setAmSolved] = useState<"INT" | "PRN" | "BAL" | "ΣINT" | "ΣPRN" | null>(null);
+
+  // CNVR screen: n= / I%= (working rate, input) / EFF:Solve / APR:Solve (read-only, computed from n & I%)
+  const [cnvrN,   setCnvrN]   = useState("0");
+  const [cnvrI,   setCnvrI]   = useState("0");
+  const [cnvrEFF, setCnvrEFF] = useState("");
+  const [cnvrAPR, setCnvrAPR] = useState("");
+  const [cnvrCursor, setCnvrCursor] = useState(0); // 0=n, 1=I%, 2=EFF, 3=APR
+  const [cnvrSolved, setCnvrSolved] = useState<"EFF" | "APR" | null>(null);
 
   const [wrongFields, setWrongFields] = useState<Set<Field>>(new Set());
   const wrongAttemptsRef = useRef<Record<Field, number>>({ n: 0, I: 0, PV: 0, PMT: 0, FV: 0 });
@@ -562,6 +570,17 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     setTimeout(() => setFlyingLabels(prev => prev.filter(l => l.id !== fid)), 700);
   }
 
+  /* ─── Digit/sign entry appears only after the flying char lands ── */
+  const FLY_LANDING_MS = 750;
+  function pressNumAfterFly(flyId: string, digit: string) {
+    spawnFlyChar(flyId);
+    setTimeout(() => pressNum(digit), FLY_LANDING_MS);
+  }
+  function pressSignAfterFly() {
+    spawnFlyChar("sign");
+    setTimeout(() => pressSign(), FLY_LANDING_MS);
+  }
+
   /* ─── Click sound + flying char on press (Demo Mode) ── */
   useEffect(() => {
     if (!pressedButtonId) return;
@@ -648,6 +667,24 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     setTextCursor(-1);
     if (!editing || buffer === "" || buffer === "-") { setBuffer(""); setEditing(false); return; }
     setSmplVal(smplCursor, buffer);
+    setBuffer(""); setEditing(false);
+  }
+
+  const CNVR_LABELS = ["n", "I%", "EFF", "APR"];
+  function cnvrIsReadOnly(idx: number) { return idx >= 2; }
+
+  function getCnvrVal(i: number): string {
+    return [cnvrN, cnvrI, cnvrEFF, cnvrAPR][i] ?? "";
+  }
+  function setCnvrVal(i: number, v: string) {
+    const setters = [setCnvrN, setCnvrI];
+    setters[i]?.(v);
+  }
+  function commitCnvrBuffer() {
+    setTextCursor(-1);
+    if (!editing || buffer === "" || buffer === "-" || cnvrIsReadOnly(cnvrCursor)) { setBuffer(""); setEditing(false); return; }
+    setCnvrSolved(null);
+    setCnvrVal(cnvrCursor, buffer);
     setBuffer(""); setEditing(false);
   }
 
@@ -747,6 +784,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     setAmINT(""); setAmPRN(""); setAmBAL(""); setAmSumINT(""); setAmSumPRN(""); setAmSolved(null);
     setSmplDays("0"); setSmplI("0"); setSmplPV("0"); setSmplSI(""); setSmplSFV(""); setSmplCursor(0); setSmplSolved(null);
     setBondD1(""); setBondD2(""); setBondRDV(""); setBondCPN("0"); setBondPRC(""); setBondYLD(""); setBondINT(""); setBondCST(""); setBondCursor(0); setBondFreq("Annual"); setBondBasis("Date"); setBondSetSub(0); setBondSetMenu(null); setBondSolved(null);
+    setCnvrN("0"); setCnvrI("0"); setCnvrEFF(""); setCnvrAPR(""); setCnvrCursor(0); setCnvrSolved(null);
     setCompResult("0"); setCompExpr("");
     setShiftActive(false); setScreenMode("comp");
   }
@@ -808,6 +846,16 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       }
       if (smplCursor < 0 || SMPL_RO[smplCursor]) return;
       if (!editing) { setEditing(true); setBuffer(d === "." ? "0." : d); setTextCursor(-1); setSmplSolved(null); }
+      else {
+        if (d === "." && buffer.includes(".")) return;
+        if (textCursor < 0) setBuffer(b => b + d);
+        else { setBuffer(b => b.slice(0, textCursor) + d + b.slice(textCursor)); setTextCursor(tc => tc + 1); }
+      }
+      return;
+    }
+    if (screenMode === "cnvr") {
+      if (cnvrIsReadOnly(cnvrCursor)) return;
+      if (!editing) { setEditing(true); setBuffer(d === "." ? "0." : d); setTextCursor(-1); setCnvrSolved(null); }
       else {
         if (d === "." && buffer.includes(".")) return;
         if (textCursor < 0) setBuffer(b => b + d);
@@ -913,6 +961,12 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       setBuffer(b => b.startsWith("-") ? b.slice(1) : "-" + b);
       return;
     }
+    if (screenMode === "cnvr") {
+      if (cnvrCursor === 0 || cnvrIsReadOnly(cnvrCursor)) return; // n must stay positive; EFF/APR are read-only
+      if (!editing) { setEditing(true); setBuffer("-"); setTextCursor(-1); setCnvrSolved(null); return; }
+      setBuffer(b => b.startsWith("-") ? b.slice(1) : "-" + b);
+      return;
+    }
     if (cursor < 0) return;
     setSolved(null);
     if (editing) setBuffer(b => b.startsWith("-") ? b.slice(1) : "-" + b);
@@ -943,7 +997,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
   function pressOp(op: "×" | "÷" | "+" | "−") {
     if (!poweredOn) return;
     // In the data-entry screens there is no arithmetic — let the bottom "−" act as a sign toggle, like (−)
-    if (op === "−" && (screenMode === "cashEditor" || screenMode === "cash" || screenMode === "smpl" || screenMode === "bond" || screenMode === "amrt")) { pressSign(); return; }
+    if (op === "−" && (screenMode === "cashEditor" || screenMode === "cash" || screenMode === "smpl" || screenMode === "bond" || screenMode === "amrt" || screenMode === "cnvr")) { pressSign(); return; }
     if (screenMode === "comp") {
       if (pendingOp) {
         // chain: compute current then set new op
@@ -1078,6 +1132,11 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       setAmCursor(c => Math.min(c + 1, AMRT_TOTAL - 1));
       return;
     }
+    if (screenMode === "cnvr") {
+      commitCnvrBuffer();
+      setCnvrCursor(c => Math.min(3, c + 1));
+      return;
+    }
     if (cursor === -1) { setSetMenuOrigin("cmpd"); setScreenMode("setMenu"); return; }
     if (pendingOp) {
       const l = parseFloat(pendingLeft) || 0;
@@ -1117,6 +1176,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     }
     if (screenMode === "smpl" && !editing) return;
     if (screenMode === "bond" && !editing) return;
+    if (screenMode === "cnvr" && !editing) return;
     if (editing) {
       if (textCursor < 0) {
         if (buffer.length <= 1) { setBuffer(""); setEditing(false); }
@@ -1217,6 +1277,26 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       }
       return;
     }
+    if (screenMode === "cnvr") {
+      commitCnvrBuffer();
+      const n = parseFloat(cnvrN) || 0;
+      const i = parseFloat(cnvrI) || 0;
+      if (cnvrCursor === 0 || cnvrCursor === 1) { msg("—"); return; }
+      if (n <= 0) { msg("ERROR"); showNotif("n חייב להיות גדול מאפס"); return; }
+      if (cnvrCursor === 2) {
+        // EFF: I% treated as the nominal rate
+        const r = (Math.pow(1 + i / (100 * n), n) - 1) * 100;
+        if (!isFinite(r)) { msg("ERROR"); return; }
+        setCnvrEFF(String(parseFloat(r.toFixed(6)))); setCnvrSolved("EFF");
+      } else if (cnvrCursor === 3) {
+        // APR: I% treated as the effective rate
+        if (i <= -100) { msg("ERROR"); showNotif("I% לא חוקי — חייב להיות גדול מ-100%−"); return; }
+        const r = (Math.pow(1 + i / 100, 1 / n) - 1) * n * 100;
+        if (!isFinite(r)) { msg("ERROR"); return; }
+        setCnvrAPR(String(parseFloat(r.toFixed(6)))); setCnvrSolved("APR");
+      }
+      return;
+    }
     if (screenMode === "cash") {
       if (cashMainCursor < 2) { msg("—"); return; }
       const iVal = parseFloat(cashI) || 0;
@@ -1308,6 +1388,11 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       if (smplSetMenu) { setSmplBasis(b => b === 365 ? 360 : 365); return; }
       commitSmplBuffer();
       setSmplCursor(c => Math.max(-1, Math.min(4, c + dir)));
+      return;
+    }
+    if (screenMode === "cnvr") {
+      commitCnvrBuffer();
+      setCnvrCursor(c => Math.max(0, Math.min(3, c + dir)));
       return;
     }
     if (screenMode === "cash") {
@@ -1465,6 +1550,9 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           } else if (screenMode === "cmpd") {
             total = 6;
             vStart = Math.max(0, Math.min(cursor + 1 - VIEW + 1, total - VIEW));
+          } else if (screenMode === "cnvr") {
+            total = 4;
+            vStart = Math.max(0, Math.min(cnvrCursor - VIEW + 1, total - VIEW));
           }
           const hasAbove = vStart > 0;
           const hasBelow = vStart + VIEW < total;
@@ -1491,6 +1579,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
               : screenMode === "setMenu" ? "payment"
               : screenMode === "cash" ? "Cash Flow"
               : screenMode === "amrt" ? "Amortization"
+              : screenMode === "cnvr" ? "Conversion"
               : screenMode === "clrMenu" ? (clrConfirm === "done" ? "Reset All" : clrConfirm === "confirm" ? "Reset All?" : "Reset?")
               : "Compound Int."}
           </span>
@@ -1715,6 +1804,47 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
               <span style={{
                 color: isSolvedRow ? (isCur ? "#ffe87a" : "#8a2000") : rowColor,
                 fontWeight: isSolvedRow ? "bold" : "normal",
+              }}>
+                {displayVal}
+              </span>
+            </div>
+          );
+        });
+      })() : screenMode === "cnvr" ? (() => {
+        const ALL = [0, 1, 2, 3];
+        const VIEW = 3;
+        const vStart = Math.max(0, Math.min(cnvrCursor - VIEW + 1, ALL.length - VIEW));
+        const CNVR_SOLVED_IDX: Record<string, number> = { EFF: 2, APR: 3 };
+        return ALL.slice(vStart, vStart + VIEW).map(rowIdx => {
+          const isCur = rowIdx === cnvrCursor;
+          const isRO = cnvrIsReadOnly(rowIdx);
+          const rowBg    = isCur ? "#3a3a9a" : "transparent";
+          const rowColor = isCur ? "#fff"    : "#1a2a0a";
+          const rawVal = getCnvrVal(rowIdx);
+          const isSolvedRow = cnvrSolved !== null && rowIdx === CNVR_SOLVED_IDX[cnvrSolved];
+          let sep = "=";
+          let displayVal: string;
+          if (isCur && editing && !isRO) {
+            const text = buffer || "0";
+            const pos = textCursor < 0 ? text.length : textCursor;
+            displayVal = text.slice(0, pos) + "▌" + text.slice(pos);
+          } else if (isRO && rawVal === "") {
+            sep = ":";
+            displayVal = "Solve";
+          } else {
+            displayVal = rawVal === "" ? "0" : fmt(rawVal);
+          }
+          return (
+            <div key={rowIdx}
+              onMouseDown={e => { e.preventDefault(); commitCnvrBuffer(); setCnvrCursor(rowIdx); }}
+              style={{ display: "flex", alignItems: "center", padding: "0 3px", height: ROW_H,
+                borderRadius: 2, cursor: "pointer", background: rowBg, color: rowColor, fontSize: 32 }}
+            >
+              <span style={{ fontWeight: "bold" }}>{CNVR_LABELS[rowIdx]}{sep}</span>
+              <span style={{
+                color: isSolvedRow ? (isCur ? "#ffe87a" : "#8a2000") : displayVal === "Solve" ? (isCur ? "#aad4ff" : "#555") : rowColor,
+                fontWeight: isSolvedRow ? "bold" : "normal",
+                fontStyle: displayVal === "Solve" ? "italic" : "normal",
               }}>
                 {displayVal}
               </span>
@@ -2213,7 +2343,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
         <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12, gridAutoRows: "36px" }}>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "11px", fontWeight: "bold", color: "#cc0000", lineHeight: 1, pointerEvents: "none" }}>A</span>
-            <CalcBtn label="CNVR" style={S.green} onClick={() => msg("—")} />
+            <CalcBtn label="CNVR" style={S.green} active={activeButtonId === "cnvr"} pressed={pressedButtonId === "cnvr"} btnId="cnvr" onClick={() => { setScreenMode("cnvr"); setCnvrCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); }} />
           </div>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "11px", fontWeight: "bold", color: "#cc0000", lineHeight: 1, pointerEvents: "none" }}>B</span>
@@ -2232,7 +2362,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3, marginBottom: 12, gridAutoRows: "36px" }}>
-          <CalcBtn label="(−)" style={{ ...S.grayWhite, textSize: "13px" }} active={activeButtonId === "sign"} pressed={pressedButtonId === "sign"} btnId="sign" onClick={() => { spawnFlyChar("sign"); pressSign(); }} />
+          <CalcBtn label="(−)" style={{ ...S.grayWhite, textSize: "13px" }} active={activeButtonId === "sign"} pressed={pressedButtonId === "sign"} btnId="sign" onClick={pressSignAfterFly} />
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>STO</span>
             <CalcBtn label="RCL" style={{ ...S.grayWhite, textSize: "13px" }} onClick={() => {}} />
@@ -2265,15 +2395,15 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "48px" }}>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>eˣ</span>
-            <CalcBtn label="7" style={S.num} active={activeButtonId === "7"} pressed={pressedButtonId === "7"} btnId="7" onClick={() => { spawnFlyChar("7"); pressNum("7"); }} />
+            <CalcBtn label="7" style={S.num} active={activeButtonId === "7"} pressed={pressedButtonId === "7"} btnId="7" onClick={() => pressNumAfterFly("7", "7")} />
           </div>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>ln</span>
-            <CalcBtn label="8" style={S.num} active={activeButtonId === "8"} pressed={pressedButtonId === "8"} btnId="8" onClick={() => { spawnFlyChar("8"); pressNum("8"); }} />
+            <CalcBtn label="8" style={S.num} active={activeButtonId === "8"} pressed={pressedButtonId === "8"} btnId="8" onClick={() => pressNumAfterFly("8", "8")} />
           </div>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>CLR</span>
-            <CalcBtn label="9" style={S.num} active={activeButtonId === "9"} pressed={pressedButtonId === "9"} btnId="9" onClick={() => { spawnFlyChar("9"); pressNum("9"); }} />
+            <CalcBtn label="9" style={S.num} active={activeButtonId === "9"} pressed={pressedButtonId === "9"} btnId="9" onClick={() => pressNumAfterFly("9", "9")} />
           </div>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>INS</span>
@@ -2287,15 +2417,15 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "48px" }}>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>x²</span>
-            <CalcBtn label="4" style={S.num} active={activeButtonId === "4"} pressed={pressedButtonId === "4"} btnId="4" onClick={() => { spawnFlyChar("4"); pressNum("4"); }} />
+            <CalcBtn label="4" style={S.num} active={activeButtonId === "4"} pressed={pressedButtonId === "4"} btnId="4" onClick={() => pressNumAfterFly("4", "4")} />
           </div>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>√‾</span>
-            <CalcBtn label="5" style={S.num} active={activeButtonId === "5"} pressed={pressedButtonId === "5"} btnId="5" onClick={() => { spawnFlyChar("5"); pressNum("5"); }} />
+            <CalcBtn label="5" style={S.num} active={activeButtonId === "5"} pressed={pressedButtonId === "5"} btnId="5" onClick={() => pressNumAfterFly("5", "5")} />
           </div>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>^</span>
-            <CalcBtn label="6" style={S.num} active={activeButtonId === "6"} pressed={pressedButtonId === "6"} btnId="6" onClick={() => { spawnFlyChar("6"); pressNum("6"); }} />
+            <CalcBtn label="6" style={S.num} active={activeButtonId === "6"} pressed={pressedButtonId === "6"} btnId="6" onClick={() => pressNumAfterFly("6", "6")} />
           </div>
           <CalcBtn label="×" style={S.op} onClick={() => pressOp("×")} />
           <CalcBtn label="÷" style={S.op} onClick={() => pressOp("÷")} />
@@ -2303,15 +2433,15 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, marginBottom: 10, gridAutoRows: "48px" }}>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>sin</span>
-            <CalcBtn label="1" style={S.num} active={activeButtonId === "1"} pressed={pressedButtonId === "1"} btnId="1" onClick={() => { spawnFlyChar("1"); pressNum("1"); }} />
+            <CalcBtn label="1" style={S.num} active={activeButtonId === "1"} pressed={pressedButtonId === "1"} btnId="1" onClick={() => pressNumAfterFly("1", "1")} />
           </div>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>cos</span>
-            <CalcBtn label="2" style={S.num} active={activeButtonId === "2"} pressed={pressedButtonId === "2"} btnId="2" onClick={() => { spawnFlyChar("2"); pressNum("2"); }} />
+            <CalcBtn label="2" style={S.num} active={activeButtonId === "2"} pressed={pressedButtonId === "2"} btnId="2" onClick={() => pressNumAfterFly("2", "2")} />
           </div>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>tan</span>
-            <CalcBtn label="3" style={S.num} active={activeButtonId === "3"} pressed={pressedButtonId === "3"} btnId="3" onClick={() => { spawnFlyChar("3"); pressNum("3"); }} />
+            <CalcBtn label="3" style={S.num} active={activeButtonId === "3"} pressed={pressedButtonId === "3"} btnId="3" onClick={() => pressNumAfterFly("3", "3")} />
           </div>
           <CalcBtn label="+" style={S.op} onClick={() => pressOp("+")} />
           <CalcBtn label="−" style={S.op} onClick={() => pressOp("−")} />
@@ -2319,11 +2449,11 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4, gridAutoRows: "48px" }}>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>Rnd</span>
-            <CalcBtn label="0" style={S.num} active={activeButtonId === "0"} pressed={pressedButtonId === "0"} btnId="0" onClick={() => { spawnFlyChar("0"); pressNum("0"); }} />
+            <CalcBtn label="0" style={S.num} active={activeButtonId === "0"} pressed={pressedButtonId === "0"} btnId="0" onClick={() => pressNumAfterFly("0", "0")} />
           </div>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 0, right: 0, textAlign: "center", fontSize: "13px", fontWeight: "bold", color: "#8B4513", lineHeight: 1, pointerEvents: "none" }}>Δ%</span>
-            <CalcBtn label="." style={S.num} active={activeButtonId === "dot"} pressed={pressedButtonId === "dot"} btnId="dot" onClick={() => { spawnFlyChar("dot"); pressNum("."); }} />
+            <CalcBtn label="." style={S.num} active={activeButtonId === "dot"} pressed={pressedButtonId === "dot"} btnId="dot" onClick={() => pressNumAfterFly("dot", ".")} />
           </div>
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -4, left: 2, right: 2, fontSize: "13px", fontWeight: "bold", lineHeight: 1, pointerEvents: "none", display: "flex", justifyContent: "space-between" }}>
