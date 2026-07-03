@@ -115,6 +115,19 @@ function calcPBP(flows: number[]): number {
   return NaN;
 }
 
+/* ─── 1-variable statistics (STAT screen) — weighted by FREQ, matches Casio X/FREQ table ─── */
+function calcStat1Var(xs: number[], freqs: number[]): { n: number; sumX: number; sumX2: number; mean: number; sigmaX: number; sx: number } {
+  const n = freqs.reduce((a, b) => a + b, 0);
+  const sumX = xs.reduce((acc, x, i) => acc + x * freqs[i], 0);
+  const sumX2 = xs.reduce((acc, x, i) => acc + x * x * freqs[i], 0);
+  const mean = n > 0 ? sumX / n : NaN;
+  const varPop = n > 0 ? sumX2 / n - mean * mean : NaN;
+  const sigmaX = Math.sqrt(Math.max(0, varPop));
+  const varSample = n > 1 ? (sumX2 - n * mean * mean) / (n - 1) : NaN;
+  const sx = n > 1 ? Math.sqrt(Math.max(0, varSample)) : NaN;
+  return { n, sumX, sumX2, mean, sigmaX, sx };
+}
+
 /* ─── Amortization (AMRT screen) ──────────────────────────── */
 const AMRT_LABELS = ["PM1", "PM2", "n", "I%", "PV", "PMT", "FV", "P/Y", "C/Y", "BAL", "INT", "PRN", "ΣINT", "ΣPRN"];
 const AMRT_TOTAL = 14;
@@ -326,7 +339,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
   const [endBegin, setEndBegin] = useState<"END" | "BEGIN">("END");
   const [solved, setSolved] = useState<Field | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
-  const [screenMode, setScreenMode] = useState<"comp" | "smpl" | "cmpd" | "setMenu" | "cash" | "cashEditor" | "amrt" | "clrMenu" | "bond" | "cnvr">("comp");
+  const [screenMode, setScreenMode] = useState<"comp" | "smpl" | "cmpd" | "setMenu" | "cash" | "cashEditor" | "amrt" | "clrMenu" | "bond" | "cnvr" | "stat" | "statEditor">("comp");
   const [clrOption, setClrOption] = useState(0); // 0=Setup, 1=Memory, 2=All
   const [clrConfirm, setClrConfirm] = useState<false | "confirm" | "done">(false);
   const [setMenuOrigin, setSetMenuOrigin] = useState<"cmpd" | "amrt">("cmpd");
@@ -401,6 +414,21 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
   const [cnvrAPR, setCnvrAPR] = useState("");
   const [cnvrCursor, setCnvrCursor] = useState(0); // 0=n, 1=I%, 2=EFF, 3=APR
   const [cnvrSolved, setCnvrSolved] = useState<"EFF" | "APR" | null>(null);
+
+  // STAT screen (1-variable, weighted): main = Data(link) / n / x̄ / Σx / Σx² / sx / σx ; statEditor = X/FREQ table
+  const [statX,    setStatX]    = useState<string[]>(["0"]);
+  const [statFreq, setStatFreq] = useState<string[]>(["1"]);
+  const [statEditorCursor, setStatEditorCursor] = useState(0);
+  const [statEditorCol, setStatEditorCol] = useState<0 | 1>(0); // 0=X, 1=FREQ
+  const [statMainCursor, setStatMainCursor] = useState(0);
+  const [statPendingSign, setStatPendingSign] = useState(false);
+  const [statN,      setStatN]      = useState("");
+  const [statMean,   setStatMean]   = useState("");
+  const [statSumX,   setStatSumX]   = useState("");
+  const [statSumX2,  setStatSumX2]  = useState("");
+  const [statSx,     setStatSx]     = useState("");
+  const [statSigmaX, setStatSigmaX] = useState("");
+  const [statSolved, setStatSolved] = useState(false);
 
   const [wrongFields, setWrongFields] = useState<Set<Field>>(new Set());
   const wrongAttemptsRef = useRef<Record<Field, number>>({ n: 0, I: 0, PV: 0, PMT: 0, FV: 0 });
@@ -616,6 +644,20 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     setBuffer(""); setEditing(false);
   }
 
+  const STAT_MAIN_LABELS = ["Data", "n", "x̄", "Σx", "Σx²", "sx", "σx"];
+
+  function commitStatBuffer() {
+    setTextCursor(-1);
+    setStatPendingSign(false);
+    if (!editing || buffer === "" || buffer === "-") { setBuffer(""); setEditing(false); return; }
+    if (screenMode === "statEditor") {
+      if (statEditorCol === 0) setStatX(vals => vals.map((v, i) => i === statEditorCursor ? buffer : v));
+      else setStatFreq(vals => vals.map((v, i) => i === statEditorCursor ? buffer : v));
+      setStatSolved(false);
+    }
+    setBuffer(""); setEditing(false);
+  }
+
   function getAmVal(idx: number): string {
     if (idx === 0) return amPM1;
     if (idx === 1) return amPM2;
@@ -785,6 +827,8 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     setSmplDays("0"); setSmplI("0"); setSmplPV("0"); setSmplSI(""); setSmplSFV(""); setSmplCursor(0); setSmplSolved(null);
     setBondD1(""); setBondD2(""); setBondRDV(""); setBondCPN("0"); setBondPRC(""); setBondYLD(""); setBondINT(""); setBondCST(""); setBondCursor(0); setBondFreq("Annual"); setBondBasis("Date"); setBondSetSub(0); setBondSetMenu(null); setBondSolved(null);
     setCnvrN("0"); setCnvrI("0"); setCnvrEFF(""); setCnvrAPR(""); setCnvrCursor(0); setCnvrSolved(null);
+    setStatX(["0"]); setStatFreq(["1"]); setStatEditorCursor(0); setStatEditorCol(0); setStatMainCursor(0); setStatPendingSign(false);
+    setStatN(""); setStatMean(""); setStatSumX(""); setStatSumX2(""); setStatSx(""); setStatSigmaX(""); setStatSolved(false);
     setCompResult("0"); setCompExpr("");
     setShiftActive(false); setScreenMode("comp");
   }
@@ -809,6 +853,29 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       if (!editing) {
         const prefix = cashPendingSign ? "-" : "";
         setCashPendingSign(false);
+        setEditing(true); setTextCursor(-1);
+        setBuffer(d === "." ? prefix + "0." : d === "0" ? (prefix ? prefix + "0" : "0") : prefix + d);
+        return;
+      }
+      if (d === "." && buffer.includes(".")) return;
+      if (textCursor < 0) {
+        if ((buffer === "0" || buffer === "-0" || buffer === "-") && d !== ".") {
+          setBuffer((buffer.startsWith("-") ? "-" : "") + (d === "0" && buffer === "-" ? "0" : d));
+        } else {
+          setBuffer(b => b + d);
+        }
+      } else {
+        setBuffer(b => b.slice(0, textCursor) + d + b.slice(textCursor));
+        setTextCursor(tc => tc + 1);
+      }
+      return;
+    }
+    if (screenMode === "stat") return; // main screen has no directly-editable field
+    if (screenMode === "statEditor") {
+      setStatSolved(false);
+      if (!editing) {
+        const prefix = statPendingSign ? "-" : "";
+        setStatPendingSign(false);
         setEditing(true); setTextCursor(-1);
         setBuffer(d === "." ? prefix + "0." : d === "0" ? (prefix ? prefix + "0" : "0") : prefix + d);
         return;
@@ -943,6 +1010,26 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       }
       return;
     }
+    if (screenMode === "stat") return; // nothing to negate on summary screen
+    if (screenMode === "statEditor") {
+      setStatSolved(false);
+      if (editing) {
+        if (buffer === "-") { setBuffer(""); return; }
+        setBuffer(b => b.startsWith("-") ? b.slice(1) : "-" + b);
+        return;
+      }
+      const colArr = statEditorCol === 0 ? statX : statFreq;
+      const setColArr = statEditorCol === 0 ? setStatX : setStatFreq;
+      const curVal = colArr[statEditorCursor] || "0";
+      const isZero = parseFloat(curVal) === 0;
+      if (isZero) {
+        setStatPendingSign(s => !s);
+      } else {
+        const negated = curVal.startsWith("-") ? curVal.slice(1) : "-" + curVal;
+        setColArr(vals => vals.map((v, i) => i === statEditorCursor ? negated : v));
+      }
+      return;
+    }
     if (screenMode === "amrt") {
       if (amCursor === -1 || amIsReadOnly(amCursor)) return;
       if (!editing) { setAmSolved(null); setEditing(true); setBuffer("-"); setTextCursor(-1); return; }
@@ -997,7 +1084,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
   function pressOp(op: "×" | "÷" | "+" | "−") {
     if (!poweredOn) return;
     // In the data-entry screens there is no arithmetic — let the bottom "−" act as a sign toggle, like (−)
-    if (op === "−" && (screenMode === "cashEditor" || screenMode === "cash" || screenMode === "smpl" || screenMode === "bond" || screenMode === "amrt" || screenMode === "cnvr")) { pressSign(); return; }
+    if (op === "−" && (screenMode === "cashEditor" || screenMode === "cash" || screenMode === "smpl" || screenMode === "bond" || screenMode === "amrt" || screenMode === "cnvr" || screenMode === "stat" || screenMode === "statEditor")) { pressSign(); return; }
     if (screenMode === "comp") {
       if (pendingOp) {
         // chain: compute current then set new op
@@ -1126,6 +1213,29 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       }
       return;
     }
+    if (screenMode === "stat") {
+      if (statMainCursor === 0) {
+        setScreenMode("statEditor");
+        setStatEditorCursor(0); setStatEditorCol(0);
+        setBuffer(""); setEditing(false);
+      } else {
+        setStatMainCursor(c => Math.min(c + 1, 6));
+      }
+      return;
+    }
+    if (screenMode === "statEditor") {
+      const wasEditing = editing;
+      commitStatBuffer();
+      const isLast = statEditorCursor === statX.length - 1;
+      if (isLast && wasEditing && statX.length < 60) {
+        setStatX(v => [...v, "0"]);
+        setStatFreq(f => [...f, "1"]);
+        setStatEditorCursor(statX.length);
+      } else if (!isLast) {
+        setStatEditorCursor(c => c + 1);
+      }
+      return;
+    }
     if (screenMode === "amrt") {
       if (amCursor === -1) { setSetMenuOrigin("amrt"); setScreenMode("setMenu"); return; }
       commitAmBuffer();
@@ -1174,9 +1284,20 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       }
       return;
     }
+    if (screenMode === "statEditor" && !editing) {
+      if (statX.length > 1) {
+        const newIdx = Math.min(statEditorCursor, statX.length - 2);
+        setStatX(vals => vals.filter((_, i) => i !== statEditorCursor));
+        setStatFreq(vals => vals.filter((_, i) => i !== statEditorCursor));
+        setStatEditorCursor(newIdx);
+        setStatSolved(false);
+      }
+      return;
+    }
     if (screenMode === "smpl" && !editing) return;
     if (screenMode === "bond" && !editing) return;
     if (screenMode === "cnvr" && !editing) return;
+    if (screenMode === "stat" && !editing) return;
     if (editing) {
       if (textCursor < 0) {
         if (buffer.length <= 1) { setBuffer(""); setEditing(false); }
@@ -1325,6 +1446,26 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       setScreenMode("cash");
       return;
     }
+    if (screenMode === "stat") {
+      if (statMainCursor === 0) { msg("—"); return; }
+      const xs = statX.map(v => parseFloat(v) || 0);
+      const freqs = statFreq.map(v => parseFloat(v) || 0);
+      const { n, sumX, sumX2, mean, sigmaX, sx } = calcStat1Var(xs, freqs);
+      if (n === 0 || !isFinite(mean)) { msg("ERROR"); showNotif("שגיאה בחישוב — בדוק את הנתונים (FREQ חייב להיות חיובי)"); return; }
+      setStatN(String(parseFloat(n.toFixed(6))));
+      setStatMean(String(parseFloat(mean.toFixed(6))));
+      setStatSumX(String(parseFloat(sumX.toFixed(6))));
+      setStatSumX2(String(parseFloat(sumX2.toFixed(6))));
+      setStatSigmaX(String(parseFloat(sigmaX.toFixed(6))));
+      setStatSx(n > 1 && isFinite(sx) ? String(parseFloat(sx.toFixed(6))) : "");
+      setStatSolved(true);
+      return;
+    }
+    if (screenMode === "statEditor") {
+      commitStatBuffer();
+      setScreenMode("stat");
+      return;
+    }
     if (screenMode === "amrt") {
       if (!amIsReadOnly(amCursor)) commitAmBuffer();
       const pm1 = Math.max(1, Math.round(parseFloat(amPM1) || 1));
@@ -1404,6 +1545,16 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       commitCashBuffer();
       setCashPendingSign(false);
       setCashEditorCursor(c => Math.max(0, Math.min(cashEditorFlows.length - 1, c + dir)));
+      return;
+    }
+    if (screenMode === "stat") {
+      setStatMainCursor(c => Math.max(0, Math.min(6, c + dir)));
+      return;
+    }
+    if (screenMode === "statEditor") {
+      commitStatBuffer();
+      setStatPendingSign(false);
+      setStatEditorCursor(c => Math.max(0, Math.min(statX.length - 1, c + dir)));
       return;
     }
     if (screenMode === "amrt") {
@@ -1502,7 +1653,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     { key: "M",    active: false },
     { key: "STO",  active: false },
     { key: "RCL",  active: false },
-    { key: "STAT", active: false },
+    { key: "STAT", active: screenMode === "stat" || screenMode === "statEditor" },
     { key: "360",  active: false },
     { key: "SI",   active: false },
     { key: "DMY",  active: false },
@@ -1553,6 +1704,12 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           } else if (screenMode === "cnvr") {
             total = 4;
             vStart = Math.max(0, Math.min(cnvrCursor - VIEW + 1, total - VIEW));
+          } else if (screenMode === "stat") {
+            total = 7;
+            vStart = Math.max(0, Math.min(statMainCursor - VIEW + 1, total - VIEW));
+          } else if (screenMode === "statEditor") {
+            total = statX.length;
+            vStart = total <= VIEW ? 0 : Math.max(0, Math.min(statEditorCursor - VIEW + 1, total - VIEW));
           }
           const hasAbove = vStart > 0;
           const hasBelow = vStart + VIEW < total;
@@ -1565,10 +1722,10 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           );
         })()}
       </div>
-      {screenMode === "cashEditor" ? (
+      {screenMode === "cashEditor" || screenMode === "statEditor" ? (
         <div style={{ display: "flex", alignItems: "center", height: 20, marginTop: -2 }}>
           <span style={{ minWidth: 20 }}></span>
-          <div style={{ width: "50%", textAlign: "center", fontSize: 16, fontWeight: "bold", color: "#222", lineHeight: "20px" }}>X</div>
+          <div style={{ width: "50%", textAlign: "center", fontSize: 16, fontWeight: "bold", color: "#222", lineHeight: "20px" }}>{screenMode === "cashEditor" ? "X" : "x"}</div>
         </div>
       ) : (
         <div style={{ fontSize: 30, fontWeight: "bold", color: "#333", marginBottom: 0, letterSpacing: 0.5, lineHeight: "1", marginTop: -4, textAlign: screenMode === "clrMenu" ? "center" : "left" }}>
@@ -1580,6 +1737,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
               : screenMode === "cash" ? "Cash Flow"
               : screenMode === "amrt" ? "Amortization"
               : screenMode === "cnvr" ? "Conversion"
+              : screenMode === "stat" ? "1-Var Stat"
               : screenMode === "clrMenu" ? (clrConfirm === "done" ? "Reset All" : clrConfirm === "confirm" ? "Reset All?" : "Reset?")
               : "Compound Int."}
           </span>
@@ -1851,6 +2009,127 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
             </div>
           );
         });
+      })() : screenMode === "stat" ? (() => {
+        const TOTAL = 7;
+        const VIEW = 3;
+        const vStart = Math.max(0, Math.min(statMainCursor - VIEW + 1, TOTAL - VIEW));
+        const RESULT_VALS = [statN, statMean, statSumX, statSumX2, statSx, statSigmaX];
+        return Array.from({ length: VIEW }, (_, i) => vStart + i).map(rowIdx => {
+          const isCur = rowIdx === statMainCursor;
+          const rowBg    = isCur ? "#3a3a9a" : "transparent";
+          const rowColor = isCur ? "#fff"    : "#1a2a0a";
+
+          let sep = "=";
+          let valStr = "";
+          let isSolvedRow = false;
+
+          if (rowIdx === 0) {
+            valStr = "D.Editor";
+          } else {
+            const rv = RESULT_VALS[rowIdx - 1];
+            isSolvedRow = statSolved;
+            if (rv) {
+              valStr = fmt(rv);
+            } else {
+              sep = ":";
+              valStr = "Solve";
+            }
+          }
+
+          const valColor = isSolvedRow
+            ? (isCur ? "#ffe87a" : "#8a2000")
+            : valStr === "Solve"
+              ? (isCur ? "#aad4ff" : "#555")
+              : rowColor;
+
+          return (
+            <div key={rowIdx}
+              onMouseDown={e => { e.preventDefault(); setStatMainCursor(rowIdx); }}
+              style={{ display: "flex", alignItems: "center", padding: "0 3px", height: ROW_H,
+                borderRadius: 2, cursor: "pointer", background: rowBg, color: rowColor, fontSize: 32 }}
+            >
+              <span style={{ fontWeight: "bold" }}>{STAT_MAIN_LABELS[rowIdx]}{sep}</span>
+              <span style={{
+                color: valColor,
+                fontWeight: isSolvedRow ? "bold" : "normal",
+                fontStyle: valStr === "Solve" ? "italic" : "normal",
+              }}>
+                {valStr}
+              </span>
+            </div>
+          );
+        });
+      })() : screenMode === "statEditor" ? (() => {
+        const VIEW = 3;
+        const total = statX.length;
+        const vStart = total <= VIEW ? 0 : Math.max(0, Math.min(statEditorCursor - VIEW + 1, total - VIEW));
+        const H = 16;
+        const colArr = statEditorCol === 0 ? statX : statFreq;
+        const curStored = fmt(colArr[statEditorCursor] ?? "0");
+        const curStoredDisplay = curStored === "0" ? "" : curStored;
+        const inputText = editing ? (buffer || "") : (statPendingSign ? "−" : curStoredDisplay);
+        const inputPos  = editing ? (textCursor < 0 ? inputText.length : textCursor) : -1;
+        const cell = (rowIdx: number, col: 0 | 1) => {
+          const arr = col === 0 ? statX : statFreq;
+          const isCur = rowIdx === statEditorCursor && col === statEditorCol;
+          const storedVal = rowIdx < total ? (fmt(arr[rowIdx]) === "0" ? "" : fmt(arr[rowIdx])) : "";
+          return (
+            <div key={rowIdx}
+              onMouseDown={e => { e.preventDefault(); if (rowIdx < total) { if (editing) commitStatBuffer(); setStatEditorCursor(rowIdx); setStatEditorCol(col); } }}
+              style={{
+                flex: 1, height: H, cursor: rowIdx < total ? "pointer" : "default",
+                outline: isCur && rowIdx < total ? "2px solid #3a3ab0" : "none",
+                outlineOffset: -1,
+                background: isCur && rowIdx < total ? "#999" : "transparent",
+                display: "flex", alignItems: "center", justifyContent: "flex-end",
+                paddingRight: 3, fontSize: 15, fontWeight: "bold", color: "#1a2a0a",
+              }}>
+              {rowIdx < total && !isCur ? storedVal : ""}
+            </div>
+          );
+        };
+        return (
+          <div>
+            <div style={{ display: "flex", height: 13, fontSize: 11, fontWeight: "bold", color: "#444" }}>
+              <div style={{ minWidth: 18 }} />
+              <div style={{ flex: 1, textAlign: "right", paddingRight: 3, borderLeft: "2px solid #222" }}>X</div>
+              <div style={{ flex: 1, textAlign: "right", paddingRight: 3 }}>FREQ</div>
+            </div>
+            <div style={{ display: "flex" }}>
+              <div style={{ minWidth: 18, display: "flex", flexDirection: "column" }}>
+                {Array.from({ length: VIEW }, (_, i) => {
+                  const rowIdx = vStart + i;
+                  return (
+                    <div key={i} style={{ height: H, fontSize: 14, fontWeight: "bold", color: "#333",
+                      display: "flex", alignItems: "center", paddingLeft: 2 }}>
+                      {rowIdx + 1}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", borderLeft: "2px solid #222", borderRight: "1px solid #999" }}>
+                {Array.from({ length: VIEW }, (_, i) => cell(vStart + i, 0))}
+              </div>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", borderRight: "2px solid #222" }}>
+                {Array.from({ length: VIEW }, (_, i) => cell(vStart + i, 1))}
+              </div>
+            </div>
+            <div
+              data-value="active"
+              dir="ltr"
+              style={{ fontSize: 22, fontWeight: "normal", color: editing ? "#800020" : "#1a2a0a", paddingLeft: 2, marginTop: 2, display: "flex", alignItems: "center" }}
+            >
+              <span style={{ fontSize: 14, fontWeight: "bold", marginRight: 3, color: "#555" }}>{statEditorCol === 0 ? "X" : "FREQ"}</span>
+              {inputPos >= 0 ? (
+                <>
+                  <span>{inputText.slice(0, inputPos)}</span>
+                  <span style={{ display: "inline-block", width: 1, height: "0.9em", background: "currentColor", margin: "0 1px" }} />
+                  <span>{inputText.slice(inputPos)}</span>
+                </>
+              ) : inputText}
+            </div>
+          </div>
+        );
       })() : screenMode === "amrt" ? (() => {
         const ALL = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
         const VIEW = 3;
@@ -2324,6 +2603,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           <CalcBtn label="ESC" style={{ bg: "#111", text: "#7ecfff", border: "transparent", textSize: "13px", noShadow: true }} onClick={() => {
             setEditing(false); setBuffer(""); setTextCursor(-1);
             if (screenMode === "cashEditor") setScreenMode("cash");
+            if (screenMode === "statEditor") setScreenMode("stat");
           }} />
           <CalcBtn label="SOLVE" style={{ bg: "#6878a8", text: "#fff", border: "transparent", textSize: "12px", noShadow: true }} active={activeButtonId === "solve"} pressed={pressedButtonId === "solve"} btnId="solve" onClick={pressSOLVE} />
         </div>
@@ -2336,7 +2616,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
           <CalcBtn label="COMP" style={S.green} active={activeButtonId === "comp"} pressed={pressedButtonId === "comp"} btnId="comp" onClick={() => { setScreenMode("comp"); setBuffer(""); setEditing(false); setPendingOp(null); setPendingLeft("0"); setTextCursor(-1); }} />
           <div style={{ position: "relative", display: "grid" }}>
             <span style={{ position: "absolute", top: -5, left: 0, right: 0, textAlign: "center", fontSize: "9px", fontWeight: "bold", color: "#8B4513", whiteSpace: "nowrap", transform: "scale(0.8)", transformOrigin: "center", lineHeight: 1, pointerEvents: "none" }}>S-MENU</span>
-            <CalcBtn label="STAT" style={S.green} onClick={() => msg("—")} />
+            <CalcBtn label="STAT" style={S.green} active={activeButtonId === "stat"} pressed={pressedButtonId === "stat"} btnId="stat" onClick={() => { setScreenMode("stat"); setStatMainCursor(0); setBuffer(""); setEditing(false); setTextCursor(-1); }} />
           </div>
         </div>
 
