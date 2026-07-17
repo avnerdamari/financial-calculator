@@ -69,10 +69,18 @@ function solveTVM(vals: Record<Field, number>, target: Field, bg: number): numbe
   return NaN;
 }
 
+/* מספר הספרות אחרי הנקודה בתצוגת ה-LCD.
+   היה 2 — וזה הציג ערכים שגויים למראה: n=21/365=0.0575 הופיע כ-0.06 (סטייה 4%),
+   ריבית 0.005 כ-0.01 (סטייה 100%), ו-FV=1.126825 כ-1.13. החישוב עצמו תמיד היה
+   מדויק; רק התצוגה עיגלה — למרות שמחוון FIX כבוי (כלומר מצב Norm).
+   אותו תיקון הוחל ב-Finance-App וב-Advisors-App, שמחזיקים עותקים של הרכיב. */
+const DISPLAY_DECIMALS = 4;
+
 function fmt(s: string): string {
   const n = parseFloat(s);
   if (!isFinite(n)) return s;
-  return parseFloat(n.toFixed(2)).toString();
+  // parseFloat מסיר אפסים מיותרים: 104.0000 → "104", 0.0050 → "0.005"
+  return parseFloat(n.toFixed(DISPLAY_DECIMALS)).toString();
 }
 
 /* ─── Cash Flow calculations (flat array: index = time period) */
@@ -1425,7 +1433,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       if (cashMainCursor === 2) {
         const npv = calcNPV(iVal, flows);
         if (!isFinite(npv)) { msg("ERROR"); showNotif("שגיאה בחישוב NPV — בדוק ריבית ותזרים"); return; }
-        setCashNPV(parseFloat(npv.toFixed(2)).toString()); setCashSolved("NPV");
+        setCashNPV(parseFloat(npv.toFixed(DISPLAY_DECIMALS)).toString()); setCashSolved("NPV");
       } else if (cashMainCursor === 3) {
         const irr = calcIRR(flows);
         if (isNaN(irr) || !isFinite(irr)) { msg("ERROR"); showNotif("לא ניתן לחשב IRR — בדוק שיש תזרים שלילי ותזרים חיובי"); return; }
@@ -1433,7 +1441,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       } else if (cashMainCursor === 4) {
         const nfv = calcNFV(iVal, flows);
         if (!isFinite(nfv)) { msg("ERROR"); showNotif("שגיאה בחישוב NFV — בדוק ריבית ותזרים"); return; }
-        setCashNFV(parseFloat(nfv.toFixed(2)).toString()); setCashSolved("NFV");
+        setCashNFV(parseFloat(nfv.toFixed(DISPLAY_DECIMALS)).toString()); setCashSolved("NFV");
       } else if (cashMainCursor === 5) {
         const pbp = calcPBP(flows);
         if (isNaN(pbp) || !isFinite(pbp)) { msg("ERROR"); showNotif("ההשקעה אינה מוחזרת בטווח הנתון — בדוק תזרים המזומנים"); return; }
@@ -1478,7 +1486,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
       const rate = Math.pow(1 + I / (100 * CY), CY / PY) - 1;
       const { intPM1, prnPM1, sumINT, sumPRN, bal } = calcAmort(pm1, pm2, pv, pmt, rate, endBegin === "BEGIN");
       if (!isFinite(sumINT) || !isFinite(bal)) { msg("ERROR"); showNotif("שגיאה בחישוב פריסה — בדוק נתוני הלוואה"); return; }
-      const r2 = (v: number) => parseFloat(v.toFixed(2)).toString();
+      const r2 = (v: number) => parseFloat(v.toFixed(DISPLAY_DECIMALS)).toString();
       setAmINT(r2(intPM1)); setAmPRN(r2(prnPM1)); setAmBAL(r2(bal));
       setAmSumINT(r2(sumINT)); setAmSumPRN(r2(sumPRN));
       const solvedMap: Record<number, "INT" | "PRN" | "BAL" | "ΣINT" | "ΣPRN"> =
