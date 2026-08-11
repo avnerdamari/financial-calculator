@@ -2296,7 +2296,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
                         display: "flex", alignItems: "center", justifyContent: "flex-end",
                         paddingRight: 3, fontSize: 18, fontWeight: "bold", color: "#1a2a0a",
                       }}>
-                      {rowIdx < total && !isCur ? storedVal : ""}
+                      {rowIdx < total ? (isCur ? inputText : storedVal) : ""}
                     </div>
                   );
                 })}
