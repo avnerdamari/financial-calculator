@@ -2125,7 +2125,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
             <div
               data-value="active"
               dir="ltr"
-              style={{ fontSize: 22, fontWeight: "normal", color: editing ? "#800020" : "#1a2a0a", paddingLeft: 2, marginTop: 2, display: "flex", alignItems: "center" }}
+              style={{ fontSize: 22, fontWeight: "normal", lineHeight: 1, color: editing ? "#800020" : "#1a2a0a", paddingLeft: 2, marginTop: 2, display: "flex", alignItems: "center" }}
             >
               <span style={{ fontSize: 14, fontWeight: "bold", marginRight: 3, color: "#555" }}>{statEditorCol === 0 ? "X" : "FREQ"}</span>
               {inputPos >= 0 ? (
@@ -2306,7 +2306,7 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
             <div
               data-value="active"
               dir="ltr"
-              style={{ fontSize: 26, fontWeight: "normal", color: editing ? "#800020" : "#1a2a0a", paddingLeft: 2, marginTop: 2, display: "flex", alignItems: "center" }}
+              style={{ fontSize: 26, fontWeight: "normal", lineHeight: 1, color: editing ? "#800020" : "#1a2a0a", paddingLeft: 2, marginTop: 2, display: "flex", alignItems: "center" }}
             >
               {inputPos >= 0 ? (
                 <>
