@@ -1065,10 +1065,9 @@ function CasioFC200V({ activeButtonId = null, pressedButtonId = null, onPowerOff
     if (cursor < 0) return;
     setSolved(null);
     if (editing) setBuffer(b => b.startsWith("-") ? b.slice(1) : "-" + b);
-    else {
-      const f = FIELDS[cursor];
-      setValues(v => ({ ...v, [f]: v[f].startsWith("-") ? v[f].slice(1) : "-" + v[f] }));
-    }
+    // (−) לפני הספרות — כמו במחשבון האמיתי וכמו ב-SMPL/BOND/CNVR: מתחיל הקלדה חדשה עם "-".
+    // קודם הפך את הערך השמור ("0"→"-0") והסימן אבד בספרה הראשונה — ב"הצב בעצמך" ערך שלילי נכון נדחה כשגוי (4/10/26)
+    else { setEditing(true); setBuffer("-"); setTextCursor(-1); }
   }
 
   function commitBuffer(vals = values): Record<Field, string> {
